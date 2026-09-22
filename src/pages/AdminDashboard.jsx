@@ -59,7 +59,6 @@ export const AdminDashboard = () => {
     deleteCustomPage,
     targetEditCarouselItem,
     setTargetEditCarouselItem,
-    uploadFileToGitHubGist,
     resetToDefaultData,
     syncAllToCloud
   } = useApp();
@@ -384,18 +383,12 @@ export const AdminDashboard = () => {
   // 處理編輯 Carousel 保存 (包含彈窗小標籤與規格欄位)
   const handleSaveEditCarousel = (e) => {
     e.preventDefault();
-    if (!editingCarousel || !editingCarousel.id) return;
+    if (!editingCarousel || !editingCarousel.title) return;
     const badges = editingCarousel.badgesText !== undefined
       ? editingCarousel.badgesText.split(',').map(s => s.trim()).filter(Boolean)
       : (editingCarousel.badges || []);
-    
-    const finalImg = editingCarousel.imageUrl || editingCarousel.gifUrl || '';
-    const finalGif = editingCarousel.gifUrl || editingCarousel.imageUrl || '';
-
     editCarouselItem(editingCarousel.id, {
       ...editingCarousel,
-      imageUrl: finalImg,
-      gifUrl: finalGif,
       badges
     });
     setEditingCarousel(null);
@@ -405,21 +398,15 @@ export const AdminDashboard = () => {
   // 處理編輯 Showcase 保存
   const handleSaveEditShowcase = (e) => {
     e.preventDefault();
-    if (!editingShowcase || !editingShowcase.id) return;
+    if (!editingShowcase || !editingShowcase.title) return;
     const highlights = editingShowcase.highlightsText
       ? editingShowcase.highlightsText.split(',').map(s => s.trim()).filter(Boolean)
-      : (editingShowcase.highlights || []);
+      : [];
     const badges = editingShowcase.badgesText !== undefined
       ? editingShowcase.badgesText.split(',').map(s => s.trim()).filter(Boolean)
       : (editingShowcase.badges || []);
-
-    const finalImg = editingShowcase.imageUrl || editingShowcase.gifUrl || '';
-    const finalGif = editingShowcase.gifUrl || editingShowcase.imageUrl || '';
-
     editShowcaseItem(editingShowcase.id, {
       ...editingShowcase,
-      imageUrl: finalImg,
-      gifUrl: finalGif,
       highlights,
       badges
     });
@@ -430,7 +417,7 @@ export const AdminDashboard = () => {
   // 處理編輯 Question 保存
   const handleSaveEditQuestion = (e) => {
     e.preventDefault();
-    if (!editingQuestion || !editingQuestion.id) return;
+    if (!editingQuestion || !editingQuestion.title) return;
     let options = undefined;
     if (editingQuestion.type === 'radio' && editingQuestion.optionsText) {
       options = editingQuestion.optionsText.split(',').map(s => s.trim()).filter(Boolean);
@@ -446,7 +433,7 @@ export const AdminDashboard = () => {
   // 處理編輯 Card 保存
   const handleSaveEditCard = (e) => {
     e.preventDefault();
-    if (!editingCard || !editingCard.id) return;
+    if (!editingCard || !editingCard.title) return;
 
     if (editingCard.originalLocation === editingCard.targetLocation) {
       if (editingCard.targetLocation === 'home') {
@@ -478,7 +465,7 @@ export const AdminDashboard = () => {
   // 處理編輯 Announcement 保存
   const handleSaveEditAnnouncement = (e) => {
     e.preventDefault();
-    if (!editingAnnouncement || !editingAnnouncement.id) return;
+    if (!editingAnnouncement || !editingAnnouncement.title) return;
     editAnnouncement(editingAnnouncement.id, editingAnnouncement);
     setEditingAnnouncement(null);
     showToast('⚡ 已儲存！已自動擷取【網站公告】進行局部雲端同步');
@@ -505,11 +492,11 @@ export const AdminDashboard = () => {
     showToast('📢 公告已發布！已自動擷取【網站公告】進行局部雲端同步');
   };
 
-  // 本地圖片 Canvas 高效微型壓縮工具函式 (確保 Base64 絕不超過伺服器上限)
-  const compressImage = (file, maxWidth = 900, quality = 0.70) => {
+  // 本地圖片 Canvas 高效壓縮工具函式
+  const compressImage = (file, maxWidth = 1200, quality = 0.75) => {
     return new Promise((resolve, reject) => {
-      // 檔案小於 100KB 直接讀取不重壓
-      if (file.size <= 100 * 1024) {
+      // 檔案小於 150KB 直接讀取不重壓
+      if (file.size <= 150 * 1024) {
         const reader = new FileReader();
         reader.onload = (e) => resolve(e.target.result);
         reader.onerror = reject;
@@ -520,9 +507,6 @@ export const AdminDashboard = () => {
       // 動態 GIF 檔案（不論檔案大小）絕不可經過 Canvas，因為 Canvas 轉繪會將多幀動態 GIF 變為單幀靜態照片！
       const isGif = file.type === 'image/gif' || (file.name && file.name.toLowerCase().endsWith('.gif'));
       if (isGif) {
-        if (file.size > 2.5 * 1024 * 1024) {
-          alert(`⚠️ 注意：您上傳的 GIF 動畫檔案容量較大 (${(file.size / (1024 * 1024)).toFixed(1)}MB)！若雲端同步失敗，請先將 GIF 壓縮至 2.5MB 以下，或直接貼上網路 GIF 網址。`);
-        }
         const reader = new FileReader();
         reader.onload = (e) => resolve(e.target.result);
         reader.onerror = reject;
@@ -560,7 +544,8 @@ export const AdminDashboard = () => {
           }
 
           ctx.drawImage(img, 0, 0, width, height);
-          const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+          const outputType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+          const compressedDataUrl = canvas.toDataURL(outputType, quality);
           resolve(compressedDataUrl);
         };
         img.onerror = (err) => reject(err);
@@ -571,7 +556,7 @@ export const AdminDashboard = () => {
     });
   };
 
-  // 通用本地檔案上傳 (採用智慧 GitHub 雲端 CDN 自動託管，生成永久專屬網址，全訪客即時讀取)
+  // 通用本地檔案上傳 (採用智慧 Canvas 超微壓縮，直接經由 Firestore 雲端資料庫免費同步)
   const handleFileUpload = async (e, callback) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
@@ -582,39 +567,16 @@ export const AdminDashboard = () => {
     }
 
     try {
-      showToast('⏳ 正在將圖片/GIF 智慧處理並自動上傳至 GitHub 雲端 CDN...');
-      const isGif = file.type === 'image/gif' || (file.name && file.name.toLowerCase().endsWith('.gif'));
-      
-      let base64Data = '';
-      if (isGif) {
-        base64Data = await new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = (event) => resolve(event.target.result);
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        });
-      } else {
-        base64Data = await compressImage(file, 800, 0.70);
-      }
-
-      const ext = isGif ? 'gif' : 'webp';
-      const uploadRes = await uploadFileToGitHubGist(base64Data, ext);
-
-      if (uploadRes && uploadRes.success && uploadRes.url) {
-        callback(uploadRes.url);
-        showToast('✅ 圖片/GIF 成功上傳至 GitHub 雲端 CDN！已產生專屬網址，點擊『儲存修改內容』全訪客即可看到！');
-        return;
-      }
-
-      // 備用方案：當網路或權限受限時
-      callback(base64Data);
-      showToast('⚡ 已成功讀取圖片！請點擊『儲存修改內容』進行雲端同步。');
+      showToast('⏳ 正在智慧優化壓縮圖片中...');
+      const compressedDataUrl = await compressImage(file);
+      callback(compressedDataUrl);
+      showToast('⚡ 圖片已成功優化壓縮！儲存後將經由 Firestore 雲端資料庫跨裝置即時同步。');
     } catch (err) {
-      console.error('檔案處理上傳失敗:', err);
+      console.error('圖片壓縮失敗，改用原圖讀取:', err);
       const reader = new FileReader();
       reader.onload = (event) => {
         callback(event.target.result);
-        showToast('📁 已讀取本地檔案！請點擊『儲存修改內容』。');
+        showToast('📁 已讀取本地圖片檔案！');
       };
       reader.readAsDataURL(file);
     }
@@ -764,8 +726,6 @@ export const AdminDashboard = () => {
     });
     showToast('✅ 成功新增介紹頁面展示項目！');
   };
-
-
 
   // 新增表單題目
   const handleAddQuestion = (e) => {

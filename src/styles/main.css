@@ -968,6 +968,41 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
 }
 
+/* 手機裝置端表單提示字與輸入框跑馬燈 (Marquee) 動效 */
+@keyframes marqueeScroll {
+  0% { transform: translateX(0%); }
+  20% { transform: translateX(0%); }
+  75% { transform: translateX(calc(-100% + 220px)); }
+  100% { transform: translateX(0%); }
+}
+
+@media (max-width: 640px) {
+  .form-control::placeholder {
+    display: inline-block;
+    white-space: nowrap;
+    animation: marqueeScroll 8s ease-in-out infinite alternate;
+  }
+  
+  .marquee-wrapper {
+    overflow-x: auto;
+    white-space: nowrap;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    max-width: 100%;
+    display: block;
+  }
+  
+  .marquee-wrapper::-webkit-scrollbar {
+    display: none;
+  }
+
+  .marquee-content {
+    display: inline-block;
+    white-space: nowrap;
+    animation: marqueeScroll 10s ease-in-out infinite alternate;
+  }
+}
+
 .radio-group, .checkbox-group {
   display: flex;
   flex-direction: column;
@@ -1367,39 +1402,4 @@ h1, h2, h3, h4, h5, h6 {
   background: rgba(239, 68, 68, 0.9) !important;
   color: #ffffff !important;
   transform: scale(1.1) !important;
-}
-
-/* ==========================================================================
-   📱 手機端表單提示字與打字框跑馬燈 (Marquee) 動態效果
-   ========================================================================== */
-@keyframes marqueeTextScroll {
-  0% { transform: translateX(0%); }
-  45% { transform: translateX(-40%); }
-  50% { transform: translateX(-40%); }
-  95% { transform: translateX(0%); }
-  100% { transform: translateX(0%); }
-}
-
-.mobile-marquee-container {
-  overflow: hidden;
-  white-space: nowrap;
-  width: 100%;
-  position: relative;
-}
-
-@media (max-width: 640px) {
-  .mobile-marquee-text {
-    display: inline-block;
-    white-space: nowrap;
-    animation: marqueeTextScroll 10s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  }
-  
-  .mobile-marquee-text:hover {
-    animation-play-state: paused;
-  }
-
-  .form-control::placeholder {
-    font-size: 0.88rem;
-    white-space: nowrap;
-  }
 }

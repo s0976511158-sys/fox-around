@@ -5,7 +5,7 @@ import { FormPage } from './FormPage';
 import { IntroShowcase } from './IntroShowcase';
 
 export const CustomPage = ({ page }) => {
-  const { carouselItems, openImageModal, cleanCdnUrl } = useApp();
+  const { carouselItems, openImageModal } = useApp();
   const [hoveredCardId, setHoveredCardId] = useState(null);
 
   if (!page) return null;
@@ -90,7 +90,7 @@ export const CustomPage = ({ page }) => {
               >
                 <div style={{ width: '100%', height: '180px', borderRadius: 'var(--radius-sm)', overflow: 'hidden', marginBottom: '0.75rem' }}>
                   <img 
-                    src={cleanCdnUrl((hoveredCardId === item.id && item.gifUrl) ? item.gifUrl : (item.imageUrl || item.gifUrl))} 
+                    src={(hoveredCardId === item.id && item.gifUrl) ? item.gifUrl : (item.imageUrl || item.gifUrl)} 
                     alt={item.title} 
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
                   />

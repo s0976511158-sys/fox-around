@@ -66,14 +66,12 @@ export const FormPage = ({ embedded = false }) => {
           {isExpired ? <Lock size={12} /> : <FileText size={12} />} 
           {isExpired ? '🔒 活動與問卷已截止' : (heroConfig?.formPageBadge || '官方活動意見與問卷調查')}
         </div>
-        <h1 style={{ fontSize: 'clamp(1.5rem, 5vw, 2.4rem)', fontWeight: '800' }}>
+        <h1 style={{ fontSize: '2.4rem', fontWeight: '800' }}>
           {heroConfig?.formPageTitle || '參與線上問卷調查'}
         </h1>
-        <div className="mobile-marquee-container" style={{ marginTop: '0.5rem' }}>
-          <p className="mobile-marquee-text" style={{ color: 'var(--text-muted)', fontSize: '0.98rem', margin: 0 }}>
-            {heroConfig?.formPageSubtitle || '請參考上方活動目的說明並填寫以下問卷，您的建議將幫助我們持續優化體驗。'}
-          </p>
-        </div>
+        <p style={{ color: 'var(--text-muted)', fontSize: '1rem', marginTop: '0.5rem' }}>
+          {heroConfig?.formPageSubtitle || '請參考上方活動目的說明並填寫以下問卷，您的建議將幫助我們持續優化體驗。'}
+        </p>
       </div>
 
       {/* 活動簡介與填表目的說明卡片 (含時間實現限制說明) */}
@@ -190,12 +188,14 @@ export const FormPage = ({ embedded = false }) => {
 
           {formQuestions.map((q, idx) => (
             <div key={q.id} id={`q-container-${q.id}`} className="form-group" style={{ transition: 'all 0.3s ease', padding: '0.5rem', borderRadius: 'var(--radius-md)' }}>
-              <label className="form-label">
-                <span style={{ color: 'var(--accent-primary)', fontWeight: '700', marginRight: '6px' }}>
-                  Q{idx + 1}.
+              <label className="form-label marquee-wrapper">
+                <span className="marquee-content">
+                  <span style={{ color: 'var(--accent-primary)', fontWeight: '700', marginRight: '6px' }}>
+                    Q{idx + 1}.
+                  </span>
+                  {q.title}
+                  {q.required && <span style={{ color: 'var(--accent-pink)', marginLeft: '4px' }}>*</span>}
                 </span>
-                {q.title}
-                {q.required && <span style={{ color: 'var(--accent-pink)', marginLeft: '4px' }}>*</span>}
               </label>
 
               {/* 短單行文字 / Email */}
@@ -224,16 +224,16 @@ export const FormPage = ({ embedded = false }) => {
               {q.type === 'radio' && q.options && (
                 <div className="radio-group">
                   {q.options.map((opt, oIdx) => (
-                    <label key={oIdx} className="option-label">
+                    <label key={oIdx} className="option-label marquee-wrapper">
                       <input
                         type="radio"
                         name={q.id}
                         value={opt}
                         checked={formData[q.id] === opt}
                         onChange={() => handleInputChange(q.id, opt)}
-                        style={{ accentColor: 'var(--accent-primary)', width: '18px', height: '18px' }}
+                        style={{ accentColor: 'var(--accent-primary)', width: '18px', height: '18px', flexShrink: 0 }}
                       />
-                      <span style={{ fontSize: '0.95rem', color: 'var(--text-main)' }}>{opt}</span>
+                      <span className="marquee-content" style={{ fontSize: '0.95rem', color: 'var(--text-main)' }}>{opt}</span>
                     </label>
                   ))}
                 </div>

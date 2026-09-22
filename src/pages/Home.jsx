@@ -5,7 +5,7 @@ import { ImageModal } from '../components/ImageModal';
 import { ArrowRight, Sparkles, Layout, ShieldCheck, Layers, FileText, Gift, Calendar, MapPin, Star, Sparkle, Clock } from 'lucide-react';
 
 export const Home = () => {
-  const { heroConfig, eventInfo, featureCards, setActiveTab, announcements, cleanCdnUrl } = useApp();
+  const { heroConfig, eventInfo, featureCards, setActiveTab, announcements } = useApp();
 
   const handleLinkClick = (targetLink) => {
     if (!targetLink) {
@@ -135,7 +135,7 @@ export const Home = () => {
               {featuredAnnouncement.imageUrl && (
                 <div style={{ marginBottom: '1.25rem', borderRadius: 'var(--radius-md)', overflow: 'hidden', maxHeight: '350px' }}>
                   <img 
-                    src={cleanCdnUrl(featuredAnnouncement.imageUrl)} 
+                    src={featuredAnnouncement.imageUrl} 
                     alt={featuredAnnouncement.title}
                     loading="lazy"
                     decoding="async"
