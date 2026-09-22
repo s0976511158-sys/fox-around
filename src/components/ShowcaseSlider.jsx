@@ -141,6 +141,8 @@ export const ShowcaseSlider = () => {
                 src={(showGif && currentItem.gifUrl) ? currentItem.gifUrl : (currentItem.imageUrl || currentItem.gifUrl || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=1200&auto=format&fit=crop')}
                 alt={currentItem.title}
                 className="showcase-media-img"
+                loading="lazy"
+                decoding="async"
                 style={{
                   transform: showGif ? 'scale(1.08)' : 'scale(1.0)',
                   transition: 'transform 0.5s cubic-bezier(0.25, 1, 0.5, 1)'

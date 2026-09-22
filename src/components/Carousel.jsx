@@ -148,6 +148,7 @@ export const Carousel = () => {
           src={(showGif && currentSlide.gifUrl) ? currentSlide.gifUrl : (currentSlide.imageUrl || currentSlide.gifUrl || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1200&auto=format&fit=crop')}
           alt={currentSlide.title}
           className="carousel-slide-img"
+          decoding="async"
           style={{
             transform: showGif ? 'scale(1.08)' : 'scale(1.0)',
             transition: 'transform 0.5s cubic-bezier(0.25, 1, 0.5, 1)'

@@ -53,6 +53,8 @@ export const Home = () => {
           src={heroBgUrl}
           alt=""
           className="hero-bg-img"
+          fetchpriority="high"
+          decoding="async"
           style={{
             opacity: heroOpacity,
             filter: `brightness(${heroOpacity + 0.1}) contrast(1.15)`
@@ -135,6 +137,8 @@ export const Home = () => {
                   <img 
                     src={featuredAnnouncement.imageUrl} 
                     alt={featuredAnnouncement.title}
+                    loading="lazy"
+                    decoding="async"
                     style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                   />
                 </div>
