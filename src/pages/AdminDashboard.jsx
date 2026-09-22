@@ -387,8 +387,14 @@ export const AdminDashboard = () => {
     const badges = editingCarousel.badgesText !== undefined
       ? editingCarousel.badgesText.split(',').map(s => s.trim()).filter(Boolean)
       : (editingCarousel.badges || []);
+    
+    const finalImg = editingCarousel.imageUrl || editingCarousel.gifUrl || '';
+    const finalGif = editingCarousel.gifUrl || editingCarousel.imageUrl || '';
+
     editCarouselItem(editingCarousel.id, {
       ...editingCarousel,
+      imageUrl: finalImg,
+      gifUrl: finalGif,
       badges
     });
     setEditingCarousel(null);
@@ -405,8 +411,14 @@ export const AdminDashboard = () => {
     const badges = editingShowcase.badgesText !== undefined
       ? editingShowcase.badgesText.split(',').map(s => s.trim()).filter(Boolean)
       : (editingShowcase.badges || []);
+
+    const finalImg = editingShowcase.imageUrl || editingShowcase.gifUrl || '';
+    const finalGif = editingShowcase.gifUrl || editingShowcase.imageUrl || '';
+
     editShowcaseItem(editingShowcase.id, {
       ...editingShowcase,
+      imageUrl: finalImg,
+      gifUrl: finalGif,
       highlights,
       badges
     });
