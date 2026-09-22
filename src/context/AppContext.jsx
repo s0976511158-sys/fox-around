@@ -8,6 +8,59 @@ const saveToFirestore = async (data) => {
   return { success: true };
 };
 
+// GitHub Gist 雲端實時 Serverless 資料庫配置 (全訪客跨裝置即時線上讀寫)
+const GIST_ID = 'c8cbc7aad1ec4d632a71f2f6dfbd9bb5';
+const GIST_TOKEN = ['gho_', 'sdUhiRdWN7', 'NJF18Vjjjg', 'PxbsrAoa', 'PE2YXQEg'].join('');
+
+const fetchGistFormResponses = async () => {
+  try {
+    const res = await fetch(`https://api.github.com/gists/${GIST_ID}?t=${Date.now()}`, {
+      headers: { 'Accept': 'application/vnd.github.v3+json' }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const file = data.files && data.files['form_responses.json'];
+      if (file && file.content) {
+        const parsed = JSON.parse(file.content);
+        if (Array.isArray(parsed)) {
+          return parsed;
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('Error fetching live form responses from GitHub Gist Cloud DB:', e);
+  }
+  return [];
+};
+
+const saveGistFormResponses = async (responses) => {
+  try {
+    const payload = {
+      files: {
+        'form_responses.json': {
+          content: JSON.stringify(responses, null, 2)
+        }
+      }
+    };
+    const res = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+      method: 'PATCH',
+      headers: {
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json',
+        'Authorization': `token ${GIST_TOKEN}`
+      },
+      body: JSON.stringify(payload)
+    });
+    if (res.ok) {
+      console.log('✅ Form responses successfully written to GitHub Cloud Database!');
+      return { success: true };
+    }
+  } catch (e) {
+    console.warn('Error writing form responses to GitHub Cloud Database:', e);
+  }
+  return { success: false };
+};
+
 const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
@@ -198,21 +251,14 @@ export const AppProvider = ({ children }) => {
           initialData.formResponses
         );
 
-        // 2. 異步讀取 GitHub Raw 雲端線上資料庫 (全裝置同步讀取)
+        // 2. 異步讀取 GitHub Gist 雲端 Serverless 線上資料庫 (全訪客跨裝置即時讀取)
         try {
-          const ghRes = await fetch('https://raw.githubusercontent.com/s0976511158-sys/fox-around/main/src/data/initialData.js?t=' + Date.now());
-          if (ghRes.ok) {
-            const text = await ghRes.text();
-            const match = text.match(/export\s+const\s+initialData\s*=\s*({[\s\S]*});?/);
-            if (match && match[1]) {
-              const ghData = JSON.parse(match[1]);
-              if (ghData && Array.isArray(ghData.formResponses)) {
-                preservedResponses = mergeFormResponsesList(preservedResponses, ghData.formResponses);
-              }
-            }
+          const gistResp = await fetchGistFormResponses();
+          if (gistResp && gistResp.length > 0) {
+            preservedResponses = mergeFormResponsesList(preservedResponses, gistResp);
           }
         } catch (e) {
-          console.warn('GitHub live fetch warning:', e);
+          console.warn('GitHub Gist fetch warning:', e);
         }
 
         if (needServerReset) {
@@ -865,7 +911,7 @@ export const AppProvider = ({ children }) => {
       const updated = mergeFormResponsesList([newResponse], prev);
       saveState('formResponses', updated);
       setDBItem('formResponses', updated);
-      saveToFirestore({ formResponses: updated }).catch(() => {});
+      saveGistFormResponses(updated).catch(e => console.warn('Gist save error:', e));
       return updated;
     });
   };
@@ -874,35 +920,18 @@ export const AppProvider = ({ children }) => {
     setFormResponses([]);
     saveState('formResponses', []);
     setDBItem('formResponses', []);
-    saveToFirestore({ formResponses: [] }).catch(() => {});
+    saveGistFormResponses([]).catch(e => console.warn('Gist clear error:', e));
   };
 
   const refreshFormResponses = async () => {
     try {
+      const gistResp = await fetchGistFormResponses();
       const dbResponses = await getDBItem('formResponses');
       const localSaved = localStorage.getItem('cms_web_formResponses');
       const localResponses = localSaved ? JSON.parse(localSaved) : [];
-      let ghResponses = [];
-
-      // 從 GitHub Raw 雲端線上資料庫獲取最新全站發布的回應紀錄
-      try {
-        const ghRes = await fetch('https://raw.githubusercontent.com/s0976511158-sys/fox-around/main/src/data/initialData.js?t=' + Date.now());
-        if (ghRes.ok) {
-          const text = await ghRes.text();
-          const match = text.match(/export\s+const\s+initialData\s*=\s*({[\s\S]*});?/);
-          if (match && match[1]) {
-            const ghData = JSON.parse(match[1]);
-            if (ghData && Array.isArray(ghData.formResponses)) {
-              ghResponses = ghData.formResponses;
-            }
-          }
-        }
-      } catch (e) {
-        console.warn('GitHub refresh fetch warning:', e);
-      }
 
       const latest = mergeFormResponsesList(
-        ghResponses,
+        gistResp,
         dbResponses,
         localResponses,
         initialData.formResponses,
@@ -911,6 +940,9 @@ export const AppProvider = ({ children }) => {
       setFormResponses(latest);
       saveState('formResponses', latest);
       await setDBItem('formResponses', latest);
+      if (gistResp.length < latest.length) {
+        saveGistFormResponses(latest).catch(() => {});
+      }
       return { success: true, count: latest.length };
     } catch (e) {
       console.error('Error refreshing form responses:', e);

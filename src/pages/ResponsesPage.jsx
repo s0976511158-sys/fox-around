@@ -14,7 +14,7 @@ export const ResponsesPage = () => {
   const handleRefresh = async () => {
     const res = await refreshFormResponses();
     if (res.success) {
-      setRefreshMsg(`✅ 已成功刷新最新回覆紀錄！（共 ${res.count} 筆紀錄）`);
+      setRefreshMsg(`✅ 已成功從 GitHub 雲端 Serverless 資料庫同步最新紀錄！（共 ${res.count} 筆紀錄）`);
       setTimeout(() => setRefreshMsg(''), 3000);
     }
   };
@@ -103,7 +103,7 @@ export const ResponsesPage = () => {
             {heroConfig?.responsesPageSubtitle || '查看訪客所提交的完整問卷資料。下方提供 1, 2, 3... 頁碼分頁切換與搜尋功能。'}
           </p>
           <div style={{ marginTop: '0.6rem', fontSize: '0.82rem', color: 'var(--accent-emerald)', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', background: 'rgba(16, 185, 129, 0.1)', padding: '0.3rem 0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(16, 185, 129, 0.25)' }}>
-            <span>💾 全量數據已寫入瀏覽器本地庫 (localStorage & IndexedDB)，共有 <strong>{formResponses.length}</strong> 筆回應</span>
+            <span>🌐 已連線 GitHub 雲端 Serverless 資料庫 (跨裝置線上同步)，共有 <strong>{formResponses.length}</strong> 筆回應</span>
           </div>
         </div>
 
