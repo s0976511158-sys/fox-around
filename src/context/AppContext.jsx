@@ -575,11 +575,13 @@ export const AppProvider = ({ children }) => {
           featureCards,
           introCards
         };
-        fetch('/__api/save-initial-data', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        }).catch(() => {});
+        if (import.meta.env.DEV) {
+          fetch('/__api/save-initial-data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          }).catch(() => {});
+        }
       } catch (e) {}
     }, 1500);
 

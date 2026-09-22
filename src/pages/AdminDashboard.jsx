@@ -97,18 +97,20 @@ export const AdminDashboard = () => {
       const cloudRes = await syncAllToCloud(payload);
 
       // 2. 嘗試在本機環境同時更新發布
-      try {
-        const res = await fetch('/__api/deploy-firebase', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        const contentType = res.headers.get('content-type') || '';
-        if (contentType.includes('application/json')) {
-          await res.json();
+      if (import.meta.env.DEV) {
+        try {
+          const res = await fetch('/__api/deploy-firebase', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          const contentType = res.headers.get('content-type') || '';
+          if (contentType.includes('application/json')) {
+            await res.json();
+          }
+        } catch (err) {
+          // 靜態 Hosting 環境忽略本機中間件 fetch
         }
-      } catch (err) {
-        // 靜態 Hosting 環境忽略本機中間件 fetch
       }
 
       if (cloudRes.success) {
