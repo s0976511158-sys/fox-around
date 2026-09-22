@@ -1,14 +1,23 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { Pagination } from '../components/Pagination';
-import { MessageSquareText, Search, Calendar, User, Mail, Trash2, Download, Star, Filter } from 'lucide-react';
+import { MessageSquareText, Search, Calendar, User, Mail, Trash2, Download, Star, Filter, RotateCcw, Check } from 'lucide-react';
 
 export const ResponsesPage = () => {
-  const { formResponses, formQuestions, isAdmin, clearFormResponses, heroConfig } = useApp();
+  const { formResponses, formQuestions, isAdmin, clearFormResponses, refreshFormResponses, heroConfig } = useApp();
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
   const [showHiddenFields, setShowHiddenFields] = useState(false);
+  const [refreshMsg, setRefreshMsg] = useState('');
+
+  const handleRefresh = async () => {
+    const res = await refreshFormResponses();
+    if (res.success) {
+      setRefreshMsg(`✅ 已成功刷新最新回覆紀錄！（共 ${res.count} 筆紀錄）`);
+      setTimeout(() => setRefreshMsg(''), 3000);
+    }
+  };
 
   // 判斷哪些題目需要在回應中顯示
   const visibleQuestions = formQuestions.filter(q => showHiddenFields || !q.hideInResponses);
@@ -83,6 +92,10 @@ export const ResponsesPage = () => {
         </div>
 
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
+          <button className="btn btn-primary btn-sm" onClick={handleRefresh} style={{ boxShadow: '0 4px 15px rgba(99, 102, 241, 0.3)' }}>
+            <RotateCcw size={15} /> 重新整理 / 刷新最新紀錄
+          </button>
+
           {hiddenCount > 0 && (
             <button 
               className={`btn btn-sm ${showHiddenFields ? 'btn-primary' : 'btn-secondary'}`}
@@ -110,6 +123,25 @@ export const ResponsesPage = () => {
           )}
         </div>
       </div>
+
+      {refreshMsg && (
+        <div style={{
+          padding: '0.85rem 1.25rem',
+          borderRadius: 'var(--radius-md)',
+          background: 'rgba(16, 185, 129, 0.2)',
+          border: '1.5px solid var(--accent-emerald)',
+          color: '#fff',
+          fontWeight: '700',
+          fontSize: '0.92rem',
+          marginBottom: '1.5rem',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem',
+          boxShadow: '0 4px 20px rgba(16, 185, 129, 0.2)'
+        }}>
+          <Check size={18} color="var(--accent-emerald)" /> {refreshMsg}
+        </div>
+      )}
 
       {/* 搜尋過濾 Bar */}
       <div className="glass-panel" style={{ padding: '1rem 1.5rem', marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>

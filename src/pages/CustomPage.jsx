@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { Sparkles, FileText, Layers, Film } from 'lucide-react';
 import { FormPage } from './FormPage';
@@ -6,6 +6,7 @@ import { IntroShowcase } from './IntroShowcase';
 
 export const CustomPage = ({ page }) => {
   const { carouselItems, openImageModal } = useApp();
+  const [hoveredCardId, setHoveredCardId] = useState(null);
 
   if (!page) return null;
 
@@ -83,10 +84,16 @@ export const CustomPage = ({ page }) => {
                 key={item.id} 
                 className="glass-panel" 
                 onClick={() => openImageModal(item)}
+                onMouseEnter={() => setHoveredCardId(item.id)}
+                onMouseLeave={() => setHoveredCardId(null)}
                 style={{ cursor: 'pointer', padding: '1rem', transition: 'transform 0.3s ease' }}
               >
                 <div style={{ width: '100%', height: '180px', borderRadius: 'var(--radius-sm)', overflow: 'hidden', marginBottom: '0.75rem' }}>
-                  <img src={item.imageUrl} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img 
+                    src={(hoveredCardId === item.id && item.gifUrl) ? item.gifUrl : (item.imageUrl || item.gifUrl)} 
+                    alt={item.title} 
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                  />
                 </div>
                 <h4 style={{ fontSize: '1.05rem', color: 'var(--text-title)', marginBottom: '0.4rem' }}>{item.title}</h4>
                 <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>

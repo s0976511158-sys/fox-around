@@ -84,7 +84,7 @@ const MainAppContent = () => {
       case 'sponsors':
         return <SponsorsPage />;
       case 'admin':
-        return <AdminDashboard />;
+        return <Home />;
       default: {
         const foundCustomPage = customPages.find(cp => cp.id === activeTab);
         if (foundCustomPage) {
@@ -106,6 +106,7 @@ const MainAppContent = () => {
       </main>
       <ImageModal />
       <AdminLoginModal />
+      <AdminDashboard />
       <Footer />
     </div>
   );

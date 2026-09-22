@@ -103,6 +103,7 @@ export const AppProvider = ({ children }) => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminPassword, setAdminPassword] = useState(() => loadInitialState('adminPassword', 'admin123'));
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isAdminDashboardOpen, setIsAdminDashboardOpen] = useState(false);
 
   const [activeTab, setActiveTab] = useState(() => loadInitialState('activeTab', 'home'));
 
@@ -609,17 +610,19 @@ export const AppProvider = ({ children }) => {
   const loginAdmin = (inputPassword) => {
     if (inputPassword === adminPassword) {
       setIsAdmin(true);
+      setIsAdminDashboardOpen(true);
       return { success: true };
     } else {
       return { 
         success: false, 
-        message: '密碼不正確！請重新確認管理者密碼（預設測試密碼為：admin123）。' 
+        message: '密碼不正確！請重新輸入。' 
       };
     }
   };
 
   const logoutAdmin = () => {
     setIsAdmin(false);
+    setIsAdminDashboardOpen(false);
     if (activeTab === 'admin') {
       setActiveTab('home');
     }
@@ -631,6 +634,9 @@ export const AppProvider = ({ children }) => {
 
   const openLoginModal = () => setIsLoginModalOpen(true);
   const closeLoginModal = () => setIsLoginModalOpen(false);
+
+  const openAdminDashboard = () => setIsAdminDashboardOpen(true);
+  const closeAdminDashboard = () => setIsAdminDashboardOpen(false);
 
   // Hero CMS
   const updateHeroConfig = (newConfig) => {
@@ -804,6 +810,19 @@ export const AppProvider = ({ children }) => {
   const clearFormResponses = () => {
     setFormResponses([]);
     saveToFirestore({ formResponses: [] }).catch(() => {});
+  };
+
+  const refreshFormResponses = async () => {
+    try {
+      const dbResponses = await getDBItem('formResponses');
+      const localSaved = localStorage.getItem('cms_web_formResponses');
+      const latest = dbResponses || (localSaved ? JSON.parse(localSaved) : null) || initialData.formResponses || [];
+      setFormResponses(latest);
+      return { success: true, count: latest.length };
+    } catch (e) {
+      console.error('Error refreshing form responses:', e);
+      return { success: false, count: formResponses.length };
+    }
   };
 
   // 5. 網站公告與歷年紀錄 CMS (使用者需求：新增公告功能，看之前發過的公告，管理者可管理公告)
@@ -997,9 +1016,14 @@ export const AppProvider = ({ children }) => {
       addFormQuestion,
       editFormQuestion,
       deleteFormQuestion,
+      isAdminModalOpen: isAdminDashboardOpen,
+      isAdminDashboardOpen,
+      openAdminDashboard,
+      closeAdminDashboard,
       formResponses,
       addFormResponse,
       clearFormResponses,
+      refreshFormResponses,
       sponsors,
       addSponsor,
       editSponsor,

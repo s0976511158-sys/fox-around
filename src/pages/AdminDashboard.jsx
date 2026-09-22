@@ -6,6 +6,8 @@ import { Settings, Shield, Plus, Trash2, Edit3, Save, RotateCcw, Check, Sparkles
 export const AdminDashboard = () => {
   const { 
     isAdmin, 
+    isAdminDashboardOpen,
+    closeAdminDashboard,
     loginAdmin,
     logoutAdmin,
     adminPassword,
@@ -835,14 +837,40 @@ export const AdminDashboard = () => {
     );
   }
 
+  if (!isAdmin || !isAdminDashboardOpen) return null;
+
   return (
-    <div className="animate-fade-in">
-      {/* 頂部頁頭說明 */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
-        <div>
-          <div className="badge badge-emerald" style={{ marginBottom: '0.5rem' }}>
-            <Shield size={12} /> 🔐 管理者專屬獨立頁面 (已登入授權通道)
-          </div>
+    <div className="modal-backdrop" onClick={closeAdminDashboard} style={{ zIndex: 9999, overflowY: 'auto', padding: '1.5rem 0' }}>
+      <div 
+        className="glass-panel animate-fade-in" 
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          maxWidth: '1280px',
+          width: '95%',
+          margin: '0 auto',
+          position: 'relative',
+          padding: '2.5rem 2rem',
+          background: 'rgba(11, 15, 25, 0.97)',
+          border: '1.5px solid var(--border-glass-bright)',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.85)',
+          borderRadius: 'var(--radius-lg)'
+        }}
+      >
+        <button 
+          className="modal-close-btn" 
+          onClick={closeAdminDashboard} 
+          aria-label="關閉管理者控制台"
+          style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', zIndex: 100 }}
+        >
+          <X size={22} />
+        </button>
+
+        {/* 頂部頁頭說明 */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
+          <div>
+            <div className="badge badge-emerald" style={{ marginBottom: '0.5rem' }}>
+              <Shield size={12} /> 🔐 管理者控制中心 (彈窗管理模式)
+            </div>
           <h1 style={{ fontSize: '2.4rem', fontWeight: '800' }}>
             管理者專屬工作台 (Admin Console)
           </h1>
@@ -7022,6 +7050,7 @@ export const AdminDashboard = () => {
         </main>
       </div>
 
+      </div>
     </div>
   );
 };

@@ -42,6 +42,7 @@ export const Navbar = () => {
     isAdmin, 
     logoutAdmin, 
     openLoginModal,
+    openAdminDashboard,
     themeMode,
     toggleThemeMode,
     siteBranding,
@@ -136,11 +137,14 @@ export const Navbar = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // 頂部 Logo 點擊處理 (靜默連點 5 次解鎖管理者登入 Modal，無文字提示)
+  // 頂部 Logo 點擊處理 (靜默連點 5 次解鎖管理者登入 Modal，登入後點擊直接開啟彈窗)
   const handleLogoClick = () => {
     handleNavClick('home');
 
-    if (isAdmin) return;
+    if (isAdmin) {
+      openAdminDashboard();
+      return;
+    }
 
     if (clickTimerRef.current) clearTimeout(clickTimerRef.current);
 
@@ -288,12 +292,12 @@ export const Navbar = () => {
 
           {isAdmin && (
             <button
-              className={`nav-item-btn ${activeTab === 'admin' ? 'active' : ''}`}
-              onClick={() => handleNavClick('admin')}
-              style={{ color: '#818cf8', whiteSpace: 'nowrap', flexShrink: 0 }}
+              className="nav-item-btn"
+              onClick={openAdminDashboard}
+              style={{ color: '#818cf8', whiteSpace: 'nowrap', flexShrink: 0, fontWeight: '700' }}
             >
               {getLucideIcon(siteBranding.navAdminIcon, ShieldCheck, 18)}
-              <span>{siteBranding.navAdminLabel || '管理者後台'}</span>
+              <span>{siteBranding.navAdminLabel || '開啟管理者控制台'}</span>
             </button>
           )}
         </nav>
@@ -313,9 +317,13 @@ export const Navbar = () => {
 
           {isAdmin && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', whiteSpace: 'nowrap', flexShrink: 0 }}>
-              <span className="badge badge-emerald" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', padding: '0.25rem 0.55rem', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
+              <button
+                className="badge badge-emerald"
+                onClick={openAdminDashboard}
+                style={{ cursor: 'pointer', border: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.25rem', padding: '0.35rem 0.65rem', fontSize: '0.78rem', whiteSpace: 'nowrap' }}
+              >
                 <ShieldCheck size={13} /> 管理者模式
-              </span>
+              </button>
               <button
                 className="btn btn-sm btn-secondary"
                 onClick={logoutAdmin}

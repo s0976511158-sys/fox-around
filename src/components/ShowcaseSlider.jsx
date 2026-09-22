@@ -8,6 +8,7 @@ export const ShowcaseSlider = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const [isOverArrow, setIsOverArrow] = useState(false);
+  const [hoveredThumbId, setHoveredThumbId] = useState(null);
 
   // 根據選擇的主題分類過濾項目
   const filteredItems = showcaseItems.filter(item => {
@@ -191,15 +192,21 @@ export const ShowcaseSlider = () => {
               )}
             </div>
 
-            {/* 左下角縮圖快速切換列 (響應式防溢出與橫向滑動) */}
+            {/* 左下角縮圖快速切換列 (移入顯示 GIF 動畫) */}
             <div className="showcase-thumbnail-strip">
               {filteredItems.map((item, idx) => (
                 <div
                   key={item.id}
                   onClick={() => setCurrentIndex(idx)}
+                  onMouseEnter={() => setHoveredThumbId(item.id)}
+                  onMouseLeave={() => setHoveredThumbId(null)}
                   className={`showcase-thumb-item ${currentIndex === idx ? 'active' : ''}`}
                 >
-                  <img src={item.imageUrl || item.gifUrl} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img 
+                    src={(hoveredThumbId === item.id && item.gifUrl) ? item.gifUrl : (item.imageUrl || item.gifUrl)} 
+                    alt={item.title} 
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                  />
                 </div>
               ))}
             </div>
