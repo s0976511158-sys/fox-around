@@ -188,15 +188,32 @@ export const AppProvider = ({ children }) => {
         const dbTimestamp = (await getDBItem('deployTimestamp')) || 0;
         const needServerReset = serverDeployTimestamp > dbTimestamp || isNewServerDeploy;
 
-        // 預先取得與保留所有來源的表單回應 (防止伺服器部署重置時誤刪使用者回應紀錄)
+        // 1. 預先取得與保留所有來源的表單回應 (包含本地庫與預設集)
         const localSavedResp = localStorage.getItem('cms_web_formResponses');
         const localRespArr = localSavedResp ? JSON.parse(localSavedResp) : [];
         const dbRespArr = (await getDBItem('formResponses')) || [];
-        const preservedResponses = mergeFormResponsesList(
+        let preservedResponses = mergeFormResponsesList(
           localRespArr,
           dbRespArr,
           initialData.formResponses
         );
+
+        // 2. 異步讀取 GitHub Raw 雲端線上資料庫 (全裝置同步讀取)
+        try {
+          const ghRes = await fetch('https://raw.githubusercontent.com/s0976511158-sys/fox-around/main/src/data/initialData.js?t=' + Date.now());
+          if (ghRes.ok) {
+            const text = await ghRes.text();
+            const match = text.match(/export\s+const\s+initialData\s*=\s*({[\s\S]*});?/);
+            if (match && match[1]) {
+              const ghData = JSON.parse(match[1]);
+              if (ghData && Array.isArray(ghData.formResponses)) {
+                preservedResponses = mergeFormResponsesList(preservedResponses, ghData.formResponses);
+              }
+            }
+          }
+        } catch (e) {
+          console.warn('GitHub live fetch warning:', e);
+        }
 
         if (needServerReset) {
           console.log('Detected new server deploy. Syncing all device state from initialData...');
@@ -865,7 +882,27 @@ export const AppProvider = ({ children }) => {
       const dbResponses = await getDBItem('formResponses');
       const localSaved = localStorage.getItem('cms_web_formResponses');
       const localResponses = localSaved ? JSON.parse(localSaved) : [];
+      let ghResponses = [];
+
+      // 從 GitHub Raw 雲端線上資料庫獲取最新全站發布的回應紀錄
+      try {
+        const ghRes = await fetch('https://raw.githubusercontent.com/s0976511158-sys/fox-around/main/src/data/initialData.js?t=' + Date.now());
+        if (ghRes.ok) {
+          const text = await ghRes.text();
+          const match = text.match(/export\s+const\s+initialData\s*=\s*({[\s\S]*});?/);
+          if (match && match[1]) {
+            const ghData = JSON.parse(match[1]);
+            if (ghData && Array.isArray(ghData.formResponses)) {
+              ghResponses = ghData.formResponses;
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('GitHub refresh fetch warning:', e);
+      }
+
       const latest = mergeFormResponsesList(
+        ghResponses,
         dbResponses,
         localResponses,
         initialData.formResponses,
