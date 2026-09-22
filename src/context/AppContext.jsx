@@ -9,8 +9,12 @@ const GIST_TOKEN = ['gho_', 'sdUhiRdWN7', 'NJF18Vjjjg', 'PxbsrAoa', 'PE2YXQEg'].
 
 const fetchGistSiteData = async () => {
   try {
-    const res = await fetch(`https://api.github.com/gists/${GIST_ID}?t=${Date.now()}`, {
-      headers: { 'Accept': 'application/vnd.github.v3+json' }
+    const res = await fetch(`https://api.github.com/gists/${GIST_ID}?_t=${Date.now()}_${Math.random().toString(36).substring(2)}`, {
+      headers: {
+        'Accept': 'application/vnd.github.v3+json',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache'
+      }
     });
     if (res.ok) {
       const data = await res.json();
@@ -63,9 +67,9 @@ const saveGistSiteData = async (siteData) => {
 };
 
 // 相容本地存取與線上 GitHub Gist 資料庫寫入 Helper
-const saveToFirestore = async (data) => {
+const saveToFirestore = async (data, currentState = null) => {
   try {
-    const gistSiteData = (await fetchGistSiteData()) || {};
+    const gistSiteData = currentState || (await fetchGistSiteData()) || {};
     const updated = { ...gistSiteData, ...data };
     await saveGistSiteData(updated);
   } catch (e) {
@@ -76,8 +80,12 @@ const saveToFirestore = async (data) => {
 
 const fetchGistFormResponses = async () => {
   try {
-    const res = await fetch(`https://api.github.com/gists/${GIST_ID}?t=${Date.now()}`, {
-      headers: { 'Accept': 'application/vnd.github.v3+json' }
+    const res = await fetch(`https://api.github.com/gists/${GIST_ID}?_t=${Date.now()}_${Math.random().toString(36).substring(2)}`, {
+      headers: {
+        'Accept': 'application/vnd.github.v3+json',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache'
+      }
     });
     if (res.ok) {
       const data = await res.json();
@@ -271,9 +279,29 @@ export const AppProvider = ({ children }) => {
   const [showcaseItems, setShowcaseItems] = useState(() => loadInitialState('showcaseItems', initialData.showcaseItems));
   const [formQuestions, setFormQuestions] = useState(() => loadInitialState('formQuestions', initialData.formQuestions));
   const [formResponses, setFormResponses] = useState(() => loadInitialState('formResponses', initialData.formResponses));
-  const [sponsors, setSponsors] = useState(() => loadInitialState('sponsors', initialData.sponsors));
   const [customPages, setCustomPages] = useState(() => loadInitialState('customPages', []));
-  
+
+  const latestStateRef = useRef({});
+  latestStateRef.current = {
+    heroConfig,
+    eventInfo,
+    announcements,
+    categories,
+    carouselItems,
+    showcaseItems,
+    formQuestions,
+    formResponses,
+    sponsors,
+    customPages,
+    siteBranding,
+    featureCards,
+    introCards
+  };
+
+  const saveToFirestoreWithCurrentState = (patch) => {
+    return saveToFirestore(patch, latestStateRef.current);
+  };
+
   // 圖片 Modal 彈出狀態
   const [selectedImageModal, setSelectedImageModal] = useState(null);
 
@@ -741,7 +769,7 @@ export const AppProvider = ({ children }) => {
       const updated = { ...prev, ...newBranding };
       saveState('siteBranding', updated);
       setDBItem('siteBranding', updated);
-      saveToFirestore({ siteBranding: updated }).catch(() => {});
+      saveToFirestoreWithCurrentState({ siteBranding: updated }).catch(() => {});
       return updated;
     });
   };
@@ -754,7 +782,7 @@ export const AppProvider = ({ children }) => {
     };
     setFeatureCards(prev => {
       const updated = [...prev, cardWithId];
-      saveToFirestore({ featureCards: updated }).catch(() => {});
+      saveToFirestoreWithCurrentState({ featureCards: updated }).catch(() => {});
       return updated;
     });
   };
@@ -762,7 +790,7 @@ export const AppProvider = ({ children }) => {
   const editFeatureCard = (id, updatedCard) => {
     setFeatureCards(prev => {
       const updated = prev.map(card => card.id === id ? { ...card, ...updatedCard } : card);
-      saveToFirestore({ featureCards: updated }).catch(() => {});
+      saveToFirestoreWithCurrentState({ featureCards: updated }).catch(() => {});
       return updated;
     });
   };
@@ -770,7 +798,7 @@ export const AppProvider = ({ children }) => {
   const deleteFeatureCard = (id) => {
     setFeatureCards(prev => {
       const updated = prev.filter(card => card.id !== id);
-      saveToFirestore({ featureCards: updated }).catch(() => {});
+      saveToFirestoreWithCurrentState({ featureCards: updated }).catch(() => {});
       return updated;
     });
   };
@@ -783,7 +811,7 @@ export const AppProvider = ({ children }) => {
     };
     setIntroCards(prev => {
       const updated = [...prev, cardWithId];
-      saveToFirestore({ introCards: updated }).catch(() => {});
+      saveToFirestoreWithCurrentState({ introCards: updated }).catch(() => {});
       return updated;
     });
   };
@@ -791,7 +819,7 @@ export const AppProvider = ({ children }) => {
   const editIntroCard = (id, updatedCard) => {
     setIntroCards(prev => {
       const updated = prev.map(card => card.id === id ? { ...card, ...updatedCard } : card);
-      saveToFirestore({ introCards: updated }).catch(() => {});
+      saveToFirestoreWithCurrentState({ introCards: updated }).catch(() => {});
       return updated;
     });
   };
@@ -799,7 +827,7 @@ export const AppProvider = ({ children }) => {
   const deleteIntroCard = (id) => {
     setIntroCards(prev => {
       const updated = prev.filter(card => card.id !== id);
-      saveToFirestore({ introCards: updated }).catch(() => {});
+      saveToFirestoreWithCurrentState({ introCards: updated }).catch(() => {});
       return updated;
     });
   };
@@ -810,7 +838,7 @@ export const AppProvider = ({ children }) => {
     if (!trimmed || categories.includes(trimmed)) return false;
     setCategories(prev => {
       const updated = [...prev, trimmed];
-      saveToFirestore({ categories: updated }).catch(() => {});
+      saveToFirestoreWithCurrentState({ categories: updated }).catch(() => {});
       return updated;
     });
     return true;
@@ -820,7 +848,7 @@ export const AppProvider = ({ children }) => {
     if (catName === '全部') return;
     setCategories(prev => {
       const updated = prev.filter(c => c !== catName);
-      saveToFirestore({ categories: updated }).catch(() => {});
+      saveToFirestoreWithCurrentState({ categories: updated }).catch(() => {});
       return updated;
     });
   };
@@ -875,7 +903,7 @@ export const AppProvider = ({ children }) => {
       };
       saveState('heroConfig', updated);
       setDBItem('heroConfig', updated);
-      saveToFirestore({ heroConfig: updated }).catch(() => {});
+      saveToFirestoreWithCurrentState({ heroConfig: updated }).catch(() => {});
       return updated;
     });
   };
@@ -886,7 +914,7 @@ export const AppProvider = ({ children }) => {
       const updated = { ...prev, ...newInfo };
       saveState('eventInfo', updated);
       setDBItem('eventInfo', updated);
-      saveToFirestore({ eventInfo: updated }).catch(() => {});
+      saveToFirestoreWithCurrentState({ eventInfo: updated }).catch(() => {});
       return updated;
     });
   };
@@ -899,7 +927,7 @@ export const AppProvider = ({ children }) => {
     };
     setCarouselItems(prev => {
       const updated = [itemWithId, ...prev];
-      saveToFirestore({ carouselItems: updated }).catch(() => {});
+      saveToFirestoreWithCurrentState({ carouselItems: updated }).catch(() => {});
       return updated;
     });
   };
@@ -907,7 +935,7 @@ export const AppProvider = ({ children }) => {
   const editCarouselItem = (id, updatedItem) => {
     setCarouselItems(prev => {
       const updated = prev.map(item => item.id === id ? { ...item, ...updatedItem } : item);
-      saveToFirestore({ carouselItems: updated }).catch(() => {});
+      saveToFirestoreWithCurrentState({ carouselItems: updated }).catch(() => {});
       return updated;
     });
   };
@@ -915,7 +943,7 @@ export const AppProvider = ({ children }) => {
   const deleteCarouselItem = (id) => {
     setCarouselItems(prev => {
       const updated = prev.filter(item => item.id !== id);
-      saveToFirestore({ carouselItems: updated }).catch(() => {});
+      saveToFirestoreWithCurrentState({ carouselItems: updated }).catch(() => {});
       return updated;
     });
   };
@@ -930,7 +958,7 @@ export const AppProvider = ({ children }) => {
       const temp = updated[index];
       updated[index] = updated[targetIndex];
       updated[targetIndex] = temp;
-      saveToFirestore({ carouselItems: updated }).catch(() => {});
+      saveToFirestoreWithCurrentState({ carouselItems: updated }).catch(() => {});
       return updated;
     });
   };
@@ -943,7 +971,7 @@ export const AppProvider = ({ children }) => {
     };
     setShowcaseItems(prev => {
       const updated = [...prev, itemWithId];
-      saveToFirestore({ showcaseItems: updated }).catch(() => {});
+      saveToFirestoreWithCurrentState({ showcaseItems: updated }).catch(() => {});
       return updated;
     });
   };
@@ -951,7 +979,7 @@ export const AppProvider = ({ children }) => {
   const editShowcaseItem = (id, updatedItem) => {
     setShowcaseItems(prev => {
       const updated = prev.map(item => item.id === id ? { ...item, ...updatedItem } : item);
-      saveToFirestore({ showcaseItems: updated }).catch(() => {});
+      saveToFirestoreWithCurrentState({ showcaseItems: updated }).catch(() => {});
       return updated;
     });
   };
@@ -959,7 +987,7 @@ export const AppProvider = ({ children }) => {
   const deleteShowcaseItem = (id) => {
     setShowcaseItems(prev => {
       const updated = prev.filter(item => item.id !== id);
-      saveToFirestore({ showcaseItems: updated }).catch(() => {});
+      saveToFirestoreWithCurrentState({ showcaseItems: updated }).catch(() => {});
       return updated;
     });
   };
@@ -974,7 +1002,7 @@ export const AppProvider = ({ children }) => {
       const temp = updated[index];
       updated[index] = updated[targetIndex];
       updated[targetIndex] = temp;
-      saveToFirestore({ showcaseItems: updated }).catch(() => {});
+      saveToFirestoreWithCurrentState({ showcaseItems: updated }).catch(() => {});
       return updated;
     });
   };
@@ -987,7 +1015,7 @@ export const AppProvider = ({ children }) => {
     };
     setFormQuestions(prev => {
       const updated = [...prev, qWithId];
-      saveToFirestore({ formQuestions: updated }).catch(() => {});
+      saveToFirestoreWithCurrentState({ formQuestions: updated }).catch(() => {});
       return updated;
     });
   };
@@ -995,7 +1023,7 @@ export const AppProvider = ({ children }) => {
   const editFormQuestion = (id, updatedQ) => {
     setFormQuestions(prev => {
       const updated = prev.map(q => q.id === id ? { ...q, ...updatedQ } : q);
-      saveToFirestore({ formQuestions: updated }).catch(() => {});
+      saveToFirestoreWithCurrentState({ formQuestions: updated }).catch(() => {});
       return updated;
     });
   };
@@ -1003,7 +1031,7 @@ export const AppProvider = ({ children }) => {
   const deleteFormQuestion = (id) => {
     setFormQuestions(prev => {
       const updated = prev.filter(q => q.id !== id);
-      saveToFirestore({ formQuestions: updated }).catch(() => {});
+      saveToFirestoreWithCurrentState({ formQuestions: updated }).catch(() => {});
       return updated;
     });
   };
@@ -1070,7 +1098,7 @@ export const AppProvider = ({ children }) => {
     };
     setAnnouncements(prev => {
       const updated = [annWithId, ...prev];
-      saveToFirestore({ announcements: updated }).catch(() => {});
+      saveToFirestoreWithCurrentState({ announcements: updated }).catch(() => {});
       return updated;
     });
   };
@@ -1078,7 +1106,7 @@ export const AppProvider = ({ children }) => {
   const editAnnouncement = (id, updatedAnn) => {
     setAnnouncements(prev => {
       const updated = prev.map(ann => ann.id === id ? { ...ann, ...updatedAnn } : ann);
-      saveToFirestore({ announcements: updated }).catch(() => {});
+      saveToFirestoreWithCurrentState({ announcements: updated }).catch(() => {});
       return updated;
     });
   };
@@ -1086,7 +1114,7 @@ export const AppProvider = ({ children }) => {
   const deleteAnnouncement = (id) => {
     setAnnouncements(prev => {
       const updated = prev.filter(ann => ann.id !== id);
-      saveToFirestore({ announcements: updated }).catch(() => {});
+      saveToFirestoreWithCurrentState({ announcements: updated }).catch(() => {});
       return updated;
     });
   };
@@ -1094,7 +1122,7 @@ export const AppProvider = ({ children }) => {
   const togglePinAnnouncement = (id) => {
     setAnnouncements(prev => {
       const updated = prev.map(ann => ann.id === id ? { ...ann, isPinned: !ann.isPinned } : ann);
-      saveToFirestore({ announcements: updated }).catch(() => {});
+      saveToFirestoreWithCurrentState({ announcements: updated }).catch(() => {});
       return updated;
     });
   };
@@ -1107,7 +1135,7 @@ export const AppProvider = ({ children }) => {
     };
     setSponsors(prev => {
       const updated = [...prev, itemWithId];
-      saveToFirestore({ sponsors: updated }).catch(() => {});
+      saveToFirestoreWithCurrentState({ sponsors: updated }).catch(() => {});
       return updated;
     });
   };
@@ -1115,7 +1143,7 @@ export const AppProvider = ({ children }) => {
   const editSponsor = (id, updatedSponsor) => {
     setSponsors(prev => {
       const updated = prev.map(item => item.id === id ? { ...item, ...updatedSponsor } : item);
-      saveToFirestore({ sponsors: updated }).catch(() => {});
+      saveToFirestoreWithCurrentState({ sponsors: updated }).catch(() => {});
       return updated;
     });
   };
@@ -1123,7 +1151,7 @@ export const AppProvider = ({ children }) => {
   const deleteSponsor = (id) => {
     setSponsors(prev => {
       const updated = prev.filter(item => item.id !== id);
-      saveToFirestore({ sponsors: updated }).catch(() => {});
+      saveToFirestoreWithCurrentState({ sponsors: updated }).catch(() => {});
       return updated;
     });
   };
@@ -1136,7 +1164,7 @@ export const AppProvider = ({ children }) => {
     };
     setCustomPages(prev => {
       const updated = [...prev, pageWithId];
-      saveToFirestore({ customPages: updated }).catch(() => {});
+      saveToFirestoreWithCurrentState({ customPages: updated }).catch(() => {});
       return updated;
     });
     return pageWithId;
@@ -1145,7 +1173,7 @@ export const AppProvider = ({ children }) => {
   const editCustomPage = (id, updatedPage) => {
     setCustomPages(prev => {
       const updated = prev.map(p => p.id === id ? { ...p, ...updatedPage } : p);
-      saveToFirestore({ customPages: updated }).catch(() => {});
+      saveToFirestoreWithCurrentState({ customPages: updated }).catch(() => {});
       return updated;
     });
   };
@@ -1153,7 +1181,7 @@ export const AppProvider = ({ children }) => {
   const deleteCustomPage = (id) => {
     setCustomPages(prev => {
       const updated = prev.filter(p => p.id !== id);
-      saveToFirestore({ customPages: updated }).catch(() => {});
+      saveToFirestoreWithCurrentState({ customPages: updated }).catch(() => {});
       return updated;
     });
     if (activeTab === id) setActiveTab('home');

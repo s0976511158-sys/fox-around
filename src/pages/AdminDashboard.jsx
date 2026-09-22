@@ -383,7 +383,7 @@ export const AdminDashboard = () => {
   // 處理編輯 Carousel 保存 (包含彈窗小標籤與規格欄位)
   const handleSaveEditCarousel = (e) => {
     e.preventDefault();
-    if (!editingCarousel || !editingCarousel.title) return;
+    if (!editingCarousel || !editingCarousel.id) return;
     const badges = editingCarousel.badgesText !== undefined
       ? editingCarousel.badgesText.split(',').map(s => s.trim()).filter(Boolean)
       : (editingCarousel.badges || []);
@@ -398,10 +398,10 @@ export const AdminDashboard = () => {
   // 處理編輯 Showcase 保存
   const handleSaveEditShowcase = (e) => {
     e.preventDefault();
-    if (!editingShowcase || !editingShowcase.title) return;
+    if (!editingShowcase || !editingShowcase.id) return;
     const highlights = editingShowcase.highlightsText
       ? editingShowcase.highlightsText.split(',').map(s => s.trim()).filter(Boolean)
-      : [];
+      : (editingShowcase.highlights || []);
     const badges = editingShowcase.badgesText !== undefined
       ? editingShowcase.badgesText.split(',').map(s => s.trim()).filter(Boolean)
       : (editingShowcase.badges || []);
@@ -417,7 +417,7 @@ export const AdminDashboard = () => {
   // 處理編輯 Question 保存
   const handleSaveEditQuestion = (e) => {
     e.preventDefault();
-    if (!editingQuestion || !editingQuestion.title) return;
+    if (!editingQuestion || !editingQuestion.id) return;
     let options = undefined;
     if (editingQuestion.type === 'radio' && editingQuestion.optionsText) {
       options = editingQuestion.optionsText.split(',').map(s => s.trim()).filter(Boolean);
@@ -433,7 +433,7 @@ export const AdminDashboard = () => {
   // 處理編輯 Card 保存
   const handleSaveEditCard = (e) => {
     e.preventDefault();
-    if (!editingCard || !editingCard.title) return;
+    if (!editingCard || !editingCard.id) return;
 
     if (editingCard.originalLocation === editingCard.targetLocation) {
       if (editingCard.targetLocation === 'home') {
@@ -465,7 +465,7 @@ export const AdminDashboard = () => {
   // 處理編輯 Announcement 保存
   const handleSaveEditAnnouncement = (e) => {
     e.preventDefault();
-    if (!editingAnnouncement || !editingAnnouncement.title) return;
+    if (!editingAnnouncement || !editingAnnouncement.id) return;
     editAnnouncement(editingAnnouncement.id, editingAnnouncement);
     setEditingAnnouncement(null);
     showToast('⚡ 已儲存！已自動擷取【網站公告】進行局部雲端同步');
@@ -728,6 +728,8 @@ export const AdminDashboard = () => {
     });
     showToast('✅ 成功新增介紹頁面展示項目！');
   };
+
+
 
   // 新增表單題目
   const handleAddQuestion = (e) => {
