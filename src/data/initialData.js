@@ -19,7 +19,7 @@ export const initialData = {
     "heroOverlayOpacity": 0.7,
     "featureSectionTitle": "網站核心特色功能",
     "featureSectionSubtitle": "管理者可於後台自由新增、修改與刪除下列特色功能說明卡片",
-    "carouselSectionTitle": "作品合作預測",
+    "carouselSectionTitle": "作品預測",
     "carouselSectionSubtitle": " ",
     "showcasePageBadge": "2026怪物彈珠13週年",
     "showcasePageTitle": "作品預測",
