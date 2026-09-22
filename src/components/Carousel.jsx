@@ -20,6 +20,21 @@ export const Carousel = () => {
     setCurrentIndex(0);
   };
 
+  // ⚡ 圖片與 7MB GIF 高速背景預載入機制 (存入瀏覽器快取，達到 0 毫秒極速顯示)
+  useEffect(() => {
+    if (!carouselItems || carouselItems.length === 0) return;
+    carouselItems.forEach(item => {
+      if (item.imageUrl) {
+        const img = new Image();
+        img.src = item.imageUrl;
+      }
+      if (item.gifUrl) {
+        const gif = new Image();
+        gif.src = item.gifUrl;
+      }
+    });
+  }, [carouselItems]);
+
   // 自動輪播 (當滑鼠移上去 isHovered 時自動暫停)
   useEffect(() => {
     if (filteredItems.length <= 1 || isHovered) return;
@@ -92,14 +107,6 @@ export const Carousel = () => {
         onClick={() => openImageModal(currentSlide)}
         style={{ position: 'relative' }}
       >
-        {/* 滑鼠懸停暫停提示 Badge */}
-        {isHovered && (
-          <div className="pause-indicator">
-            <Pause size={14} />
-            <span>暫停輪播中 (點擊開啟詳細)</span>
-          </div>
-        )}
-
         {/* 編輯此輪播圖片按鈕 (僅管理者可見) */}
         {isAdmin && (
           <button
@@ -135,15 +142,7 @@ export const Carousel = () => {
           </button>
         )}
 
-        {/* GIF 懸停動態提示 */}
-        {currentSlide.gifUrl && (
-          <div className="gif-badge">
-            <Film size={12} style={{ display: 'inline', marginRight: '4px' }} />
-            {showGif ? '▶ GIF 動畫播映中' : '✨ 懸停移入切換 GIF'}
-          </div>
-        )}
-
-        {/* 圖片展示 (Hover 移入圖片區域切換 GIF，移至上一張/下一張按鈕時自動不觸發 GIF) */}
+        {/* 圖片展示 (Hover 移入圖片區域切換 GIF) */}
         <img
           src={(showGif && currentSlide.gifUrl) ? currentSlide.gifUrl : (currentSlide.imageUrl || currentSlide.gifUrl || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1200&auto=format&fit=crop')}
           alt={currentSlide.title}

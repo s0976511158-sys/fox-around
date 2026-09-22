@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { ChevronLeft, ChevronRight, Pause, Film, CheckCircle2, ArrowRight, Sparkles, Tag, Filter } from 'lucide-react';
 
@@ -9,6 +9,22 @@ export const ShowcaseSlider = () => {
   const [isHovered, setIsHovered] = useState(false);
   const [isOverArrow, setIsOverArrow] = useState(false);
   const [hoveredThumbId, setHoveredThumbId] = useState(null);
+  const thumbStripRef = useRef(null);
+
+  // ⚡ 圖片與 7MB GIF 高速背景預載入機制 (存入瀏覽器快取，達到 0 毫秒極速顯示)
+  useEffect(() => {
+    if (!showcaseItems || showcaseItems.length === 0) return;
+    showcaseItems.forEach(item => {
+      if (item.imageUrl) {
+        const img = new Image();
+        img.src = item.imageUrl;
+      }
+      if (item.gifUrl) {
+        const gif = new Image();
+        gif.src = item.gifUrl;
+      }
+    });
+  }, [showcaseItems]);
 
   // 根據選擇的主題分類過濾項目
   const filteredItems = showcaseItems.filter(item => {
@@ -21,6 +37,19 @@ export const ShowcaseSlider = () => {
     setSelectedCategory(cat);
     setCurrentIndex(0);
   };
+
+  // 🎞️ 當輪播索引改變時，小圖列自動平滑滾動跟隨至當前項目 (如果回第1張則滾動歸零)
+  useEffect(() => {
+    const container = thumbStripRef.current;
+    if (!container) return;
+
+    if (currentIndex === 0) {
+      container.scrollTo({ left: 0, behavior: 'smooth' });
+    } else if (container.children && container.children[currentIndex]) {
+      const activeThumb = container.children[currentIndex];
+      activeThumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+    }
+  }, [currentIndex]);
 
   // 自動輪播 (Hover 暫停)
   useEffect(() => {
@@ -121,28 +150,11 @@ export const ShowcaseSlider = () => {
                 setIsOverArrow(false);
               }}
             >
-              {/* 懸停暫停提示 */}
-              {isHovered && (
-                <div className="pause-indicator">
-                  <Pause size={14} />
-                  <span>暫停輪播中</span>
-                </div>
-              )}
-
-              {/* GIF 標籤 */}
-              {currentItem.gifUrl && (
-                <div className="gif-badge">
-                  <Film size={12} style={{ display: 'inline', marginRight: '4px' }} />
-                  {showGif ? '▶ GIF 動態播放中' : '✨ 懸停移入播放 GIF'}
-                </div>
-              )}
-
-              {/* 左側動態輪播圖片/GIF (Hover 移入圖片區域時切換為 GIF 放大，移至上一張/下一張按鈕時自動不觸發 GIF) */}
+              {/* 左側動態輪播圖片/GIF (Hover 移入圖片區域時切換為 GIF 放大) */}
               <img
                 src={(showGif && currentItem.gifUrl) ? currentItem.gifUrl : (currentItem.imageUrl || currentItem.gifUrl || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=1200&auto=format&fit=crop')}
                 alt={currentItem.title}
                 className="showcase-media-img"
-                loading="lazy"
                 decoding="async"
                 style={{
                   transform: showGif ? 'scale(1.08)' : 'scale(1.0)',
@@ -150,7 +162,7 @@ export const ShowcaseSlider = () => {
                 }}
               />
 
-              {/* 上一張 / 下一張 切換按鈕 (移至按鈕上方不觸發顯示 GIF) */}
+              {/* 上一張 / 下一張 切換按鈕 */}
               {filteredItems.length > 1 && (
                 <>
                   <button 
@@ -192,8 +204,8 @@ export const ShowcaseSlider = () => {
               )}
             </div>
 
-            {/* 左下角縮圖快速切換列 (移入顯示 GIF 動畫) */}
-            <div className="showcase-thumbnail-strip">
+            {/* 左下角縮圖快速切換列 (自動滾動定位，無視覺滾軸) */}
+            <div className="showcase-thumbnail-strip" ref={thumbStripRef}>
               {filteredItems.map((item, idx) => (
                 <div
                   key={item.id}
