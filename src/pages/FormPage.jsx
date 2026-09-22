@@ -76,24 +76,31 @@ export const FormPage = ({ embedded = false }) => {
 
       {/* 活動簡介與填表目的說明卡片 (含時間實現限制說明) */}
       <div className="event-info-card">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-          <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'var(--gradient-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
-            <Sparkles size={20} />
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', marginBottom: '1rem' }}>
+          <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'var(--gradient-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', flexShrink: 0 }}>
+            <Sparkles size={20} style={{ flexShrink: 0 }} />
           </div>
-          <div>
-            <h3 style={{ fontSize: '1.35rem', color: 'var(--text-title)' }}>{eventInfo.title}</h3>
-            <div style={{ display: 'flex', gap: '1.25rem', color: 'var(--text-muted)', fontSize: '0.88rem', marginTop: '0.3rem', flexWrap: 'wrap' }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                <Calendar size={14} color="var(--accent-cyan)" /> {eventInfo.dateText || `${eventInfo.startDate || ''} 至 ${eventInfo.endDate || ''}`}
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <h3 style={{ fontSize: 'clamp(1.1rem, 3.8vw, 1.35rem)', color: 'var(--text-title)', fontWeight: '800', lineHeight: '1.45', wordBreak: 'break-word', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+              {eventInfo.title}
+            </h3>
+            <div style={{ display: 'flex', gap: '0.4rem 1rem', color: 'var(--text-muted)', fontSize: '0.88rem', marginTop: '0.35rem', flexWrap: 'wrap', alignItems: 'center' }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', whiteSpace: 'nowrap' }}>
+                <Calendar size={14} color="var(--accent-cyan)" style={{ flexShrink: 0 }} /> {eventInfo.dateText || `${eventInfo.startDate || ''} 至 ${eventInfo.endDate || ''}`}
               </span>
               {(eventInfo.deadlineText || eventInfo.endDate) && (
-                <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: isExpired ? '#fca5a5' : 'var(--accent-pink)', fontWeight: '700' }}>
-                  <Clock size={14} /> 截止時間：{eventInfo.deadlineText || eventInfo.endDate} {isExpired ? '(已截止)' : '(進行中)'}
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', color: isExpired ? '#fca5a5' : 'var(--accent-pink)', fontWeight: '700', flexWrap: 'wrap' }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', whiteSpace: 'nowrap' }}>
+                    <Clock size={14} style={{ flexShrink: 0 }} /> 截止時間：{eventInfo.deadlineText || eventInfo.endDate}
+                  </span>
+                  <span className={`badge ${isExpired ? 'badge-pink' : 'badge-emerald'}`} style={{ fontSize: '0.75rem', padding: '0.15rem 0.5rem', borderRadius: 'var(--radius-sm)', whiteSpace: 'nowrap', display: 'inline-block' }}>
+                    {isExpired ? '已截止' : '進行中'}
+                  </span>
                 </span>
               )}
               {eventInfo.location && (
-                <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                  <MapPin size={14} color="var(--accent-pink)" /> {eventInfo.location}
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', whiteSpace: 'nowrap' }}>
+                  <MapPin size={14} color="var(--accent-pink)" style={{ flexShrink: 0 }} /> {eventInfo.location}
                 </span>
               )}
             </div>

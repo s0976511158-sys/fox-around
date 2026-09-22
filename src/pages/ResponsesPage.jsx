@@ -14,7 +14,7 @@ export const ResponsesPage = () => {
   const handleRefresh = async () => {
     const res = await refreshFormResponses();
     if (res.success) {
-      setRefreshMsg(`✅ 已成功從 GitHub 雲端 Serverless 資料庫同步最新紀錄！（共 ${res.count} 筆紀錄）`);
+      setRefreshMsg(`✅ 已刷新（共 ${res.count} 則紀錄）`);
       setTimeout(() => setRefreshMsg(''), 3000);
     }
   };

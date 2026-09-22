@@ -184,19 +184,24 @@ export const Home = () => {
                       </span>
                     )}
                   </div>
-                  <h2 style={{ fontSize: '1.8rem', color: 'var(--text-title)', fontWeight: '800' }}>{eventInfo.title}</h2>
-                  <div style={{ display: 'flex', gap: '1.5rem', color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '0.4rem', flexWrap: 'wrap' }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                      <Calendar size={16} color="var(--accent-cyan)" /> {eventInfo.dateText}
+                  <h2 style={{ fontSize: 'clamp(1.15rem, 3.8vw, 1.8rem)', color: 'var(--text-title)', fontWeight: '800', lineHeight: '1.45', wordBreak: 'break-word', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{eventInfo.title}</h2>
+                  <div style={{ display: 'flex', gap: '0.4rem 1.25rem', color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '0.4rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', whiteSpace: 'nowrap' }}>
+                      <Calendar size={16} color="var(--accent-cyan)" style={{ flexShrink: 0 }} /> {eventInfo.dateText}
                     </span>
                     {(eventInfo.deadlineText || eventInfo.endDate) && (
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: isExpired ? '#fca5a5' : 'var(--accent-pink)', fontWeight: '700' }}>
-                        <Clock size={16} /> 截止時間：{eventInfo.deadlineText || eventInfo.endDate} {isExpired ? '(已截止)' : '(進行中)'}
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', color: isExpired ? '#fca5a5' : 'var(--accent-pink)', fontWeight: '700', flexWrap: 'wrap' }}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', whiteSpace: 'nowrap' }}>
+                          <Clock size={16} style={{ flexShrink: 0 }} /> 截止時間：{eventInfo.deadlineText || eventInfo.endDate}
+                        </span>
+                        <span className={`badge ${isExpired ? 'badge-pink' : 'badge-emerald'}`} style={{ fontSize: '0.75rem', padding: '0.15rem 0.5rem', borderRadius: 'var(--radius-sm)', whiteSpace: 'nowrap', display: 'inline-block' }}>
+                          {isExpired ? '已截止' : '進行中'}
+                        </span>
                       </span>
                     )}
                     {eventInfo.location && (
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                        <MapPin size={16} color="var(--accent-pink)" /> {eventInfo.location}
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', whiteSpace: 'nowrap' }}>
+                        <MapPin size={16} color="var(--accent-pink)" style={{ flexShrink: 0 }} /> {eventInfo.location}
                       </span>
                     )}
                   </div>
