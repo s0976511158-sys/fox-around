@@ -154,10 +154,18 @@ export const ShowcaseSlider = () => {
             >
               {/* 左側動態輪播圖片/GIF (Hover 移入圖片區域時切換為 GIF 放大) */}
               <img
-                src={(showGif && currentItem.gifUrl) ? currentItem.gifUrl : (currentItem.imageUrl || currentItem.gifUrl || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=1200&auto=format&fit=crop')}
+                src={
+                  (showGif && currentItem.gifUrl && !currentItem.gifUrl.startsWith('./images/'))
+                    ? currentItem.gifUrl
+                    : ((currentItem.imageUrl && !currentItem.imageUrl.startsWith('./images/')) ? currentItem.imageUrl : (currentItem.gifUrl && !currentItem.gifUrl.startsWith('./images/') ? currentItem.gifUrl : 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=1200&auto=format&fit=crop'))
+                }
                 alt={currentItem.title}
                 className="showcase-media-img"
                 decoding="async"
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=1200&auto=format&fit=crop';
+                }}
                 style={{
                   transform: showGif ? 'scale(1.08)' : 'scale(1.0)',
                   transition: 'transform 0.5s cubic-bezier(0.25, 1, 0.5, 1)'

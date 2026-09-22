@@ -146,10 +146,18 @@ export const Carousel = () => {
 
         {/* 圖片展示 (Hover 移入圖片區域切換 GIF) */}
         <img
-          src={(showGif && currentSlide.gifUrl) ? currentSlide.gifUrl : (currentSlide.imageUrl || currentSlide.gifUrl || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1200&auto=format&fit=crop')}
+          src={
+            (showGif && currentSlide.gifUrl && !currentSlide.gifUrl.startsWith('./images/'))
+              ? currentSlide.gifUrl
+              : ((currentSlide.imageUrl && !currentSlide.imageUrl.startsWith('./images/')) ? currentSlide.imageUrl : (currentSlide.gifUrl && !currentSlide.gifUrl.startsWith('./images/') ? currentSlide.gifUrl : 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1200&auto=format&fit=crop'))
+          }
           alt={currentSlide.title}
           className="carousel-slide-img"
           decoding="async"
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1200&auto=format&fit=crop';
+          }}
           style={{
             transform: showGif ? 'scale(1.08)' : 'scale(1.0)',
             transition: 'transform 0.5s cubic-bezier(0.25, 1, 0.5, 1)'
