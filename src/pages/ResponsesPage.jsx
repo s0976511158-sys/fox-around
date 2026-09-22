@@ -1,0 +1,212 @@
+import React, { useState } from 'react';
+import { useApp } from '../context/AppContext';
+import { Pagination } from '../components/Pagination';
+import { MessageSquareText, Search, Calendar, User, Mail, Trash2, Download, Star, Filter } from 'lucide-react';
+
+export const ResponsesPage = () => {
+  const { formResponses, formQuestions, isAdmin, clearFormResponses, heroConfig } = useApp();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
+  const [showHiddenFields, setShowHiddenFields] = useState(false);
+
+  // 判斷哪些題目需要在回應中顯示
+  const visibleQuestions = formQuestions.filter(q => showHiddenFields || !q.hideInResponses);
+  const hiddenCount = formQuestions.filter(q => q.hideInResponses).length;
+
+  // 根據搜尋關鍵字過濾回應
+  const filteredResponses = formResponses.filter(resp => {
+    if (!searchTerm.trim()) return true;
+    const term = searchTerm.toLowerCase();
+    
+    // 檢查答案內容或時間
+    const dateMatch = resp.submittedAt?.toLowerCase().includes(term);
+    const answersMatch = Object.values(resp.answers || {}).some(val => 
+      String(val).toLowerCase().includes(term)
+    );
+    return dateMatch || answersMatch;
+  });
+
+  // 計算分頁 (1, 2, 3...)
+  const totalPages = Math.ceil(filteredResponses.length / itemsPerPage) || 1;
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  
+  const startIndex = (safeCurrentPage - 1) * itemsPerPage;
+  const currentResponses = filteredResponses.slice(startIndex, startIndex + itemsPerPage);
+
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+    window.scrollTo({ top: 200, behavior: 'smooth' });
+  };
+
+  const handleItemsPerPageChange = (newSize) => {
+    setItemsPerPage(newSize);
+    setCurrentPage(1);
+  };
+
+  // 匯出 CSV 檔
+  const exportToCSV = () => {
+    if (formResponses.length === 0) return;
+    
+    const exportQuestions = formQuestions.filter(q => showHiddenFields || !q.hideInResponses);
+    const headers = ['回應ID', '提交時間', ...exportQuestions.map(q => q.title)];
+    const rows = formResponses.map(r => [
+      r.id,
+      r.submittedAt,
+      ...exportQuestions.map(q => `"${String(r.answers[q.id] || '').replace(/"/g, '""')}"`)
+    ]);
+
+    const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `form_responses_${Date.now()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  return (
+    <div className="animate-fade-in">
+      {/* 標題與搜尋 bar */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1.5rem', marginBottom: '2rem' }}>
+        <div>
+          <div className="badge badge-emerald" style={{ marginBottom: '0.5rem', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+            <MessageSquareText size={12} /> {heroConfig?.responsesPageBadge || '大家的回應與反饋'}
+          </div>
+          <h1 style={{ fontSize: '2.4rem', fontWeight: '800' }}>
+            {heroConfig?.responsesPageTitle || '表單回應數據記錄'}
+          </h1>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', marginTop: '0.3rem' }}>
+            {heroConfig?.responsesPageSubtitle || '查看訪客所提交的完整問卷資料。下方提供 1, 2, 3... 頁碼分頁切換與搜尋功能。'}
+          </p>
+        </div>
+
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
+          {hiddenCount > 0 && (
+            <button 
+              className={`btn btn-sm ${showHiddenFields ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={() => setShowHiddenFields(!showHiddenFields)}
+              title="後台設定隱藏的題目"
+            >
+              <Filter size={14} /> {showHiddenFields ? '隱藏未顯示題目' : `顯示已隱藏題目 (${hiddenCount})`}
+            </button>
+          )}
+
+          {formResponses.length > 0 && (
+            <button className="btn btn-secondary btn-sm" onClick={exportToCSV}>
+              <Download size={16} /> 匯出 CSV
+            </button>
+          )}
+
+          {isAdmin && formResponses.length > 0 && (
+            <button className="btn btn-danger btn-sm" onClick={() => {
+              if (window.confirm('確定要清空所有表單回應數據嗎？此操作不可逆。')) {
+                clearFormResponses();
+              }
+            }}>
+              <Trash2 size={16} /> 清空所有回應
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* 搜尋過濾 Bar */}
+      <div className="glass-panel" style={{ padding: '1rem 1.5rem', marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <Search size={20} color="var(--text-muted)" />
+        <input
+          type="text"
+          className="form-control"
+          placeholder="搜尋稱呼、Email 或答案關鍵字..."
+          value={searchTerm}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            setCurrentPage(1);
+          }}
+          style={{ background: 'transparent', border: 'none', padding: '0.4rem 0' }}
+        />
+        {searchTerm && (
+          <button 
+            className="btn btn-sm btn-secondary" 
+            onClick={() => setSearchTerm('')}
+            style={{ whiteSpace: 'nowrap' }}
+          >
+            清除搜尋
+          </button>
+        )}
+      </div>
+
+      {/* 回應內容列表 */}
+      {filteredResponses.length === 0 ? (
+        <div className="glass-panel" style={{ padding: '4rem 2rem', textAlign: 'center' }}>
+          <MessageSquareText size={48} color="var(--text-dim)" style={{ marginBottom: '1rem' }} />
+          <h3 style={{ fontSize: '1.25rem', color: 'var(--text-title)', marginBottom: '0.5rem' }}>
+            {searchTerm ? '找不到符合關鍵字的回應內容' : '目前尚無表單回應紀錄'}
+          </h3>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+            {searchTerm ? '請嘗試更換搜尋關鍵字。' : '訪客填寫表單送出後，資料將自動顯示於此。'}
+          </p>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          {currentResponses.map((resp, idx) => (
+            <div key={resp.id} className="glass-panel glass-panel-interactive" style={{ padding: '1.75rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', paddingBottom: '0.75rem', borderBottom: '1px solid var(--border-glass)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <span className="badge badge-indigo">
+                    #{startIndex + idx + 1} 號回應
+                  </span>
+                  <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                    <Calendar size={14} />
+                    {resp.submittedAt}
+                  </span>
+                </div>
+                <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)', fontFamily: 'monospace' }}>
+                  ID: {resp.id}
+                </span>
+              </div>
+
+              {/* 回應答案渲染 */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.25rem' }}>
+                {visibleQuestions.map(q => {
+                  const val = resp.answers[q.id];
+                  if (val === undefined || val === '') return null;
+
+                  return (
+                    <div key={q.id} className="event-inner-box" style={{ padding: '0.9rem 1.1rem', borderRadius: 'var(--radius-md)', border: q.hideInResponses ? '1px dashed var(--accent-pink)' : undefined }}>
+                      <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '0.35rem', fontWeight: '600', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span>{q.title}</span>
+                        {q.hideInResponses && <span style={{ fontSize: '0.7rem', color: 'var(--accent-pink)' }}>[後台設為隱藏]</span>}
+                      </div>
+                      
+                      {q.type === 'rating' ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: '#d97706', fontWeight: '700' }}>
+                          <Star size={16} fill="#f59e0b" color="#f59e0b" />
+                          <span>{val} 星評分</span>
+                        </div>
+                      ) : (
+                        <div style={{ fontSize: '0.95rem', color: 'var(--text-main)', wordBreak: 'break-word' }}>
+                          {String(val)}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* 頁碼 1, 2, 3... 分頁控制元件 (Requirement 2) */}
+      <Pagination
+        currentPage={safeCurrentPage}
+        totalPages={totalPages}
+        onPageChange={handlePageChange}
+        itemsPerPage={itemsPerPage}
+        onItemsPerPageChange={handleItemsPerPageChange}
+        totalItems={filteredResponses.length}
+      />
+    </div>
+  );
+};
