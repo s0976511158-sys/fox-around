@@ -18,7 +18,7 @@ function extractBase64ImagesToFiles(obj, prefix = 'upload') {
         const outDir = path.resolve(process.cwd(), 'public/images');
         if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
         fs.writeFileSync(path.join(outDir, filename), buffer);
-        return `/images/${filename}`;
+        return `./images/${filename}`;
       }
     }
     return obj;
