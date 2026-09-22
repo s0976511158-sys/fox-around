@@ -15,13 +15,11 @@ export const ShowcaseSlider = () => {
   useEffect(() => {
     if (!showcaseItems || showcaseItems.length === 0) return;
     showcaseItems.forEach(item => {
-      if (item.imageUrl) {
+      if (item.imageUrl && !item.imageUrl.includes('giphy.com')) {
         const img = new Image();
         img.src = item.imageUrl;
       }
-      if (item.gifUrl) {
-        const webp = new Image();
-        webp.src = item.gifUrl.endsWith('.gif') ? item.gifUrl.replace(/\.gif$/i, '.webp') : item.gifUrl;
+      if (item.gifUrl && !item.gifUrl.includes('giphy.com')) {
         const gif = new Image();
         gif.src = item.gifUrl;
       }

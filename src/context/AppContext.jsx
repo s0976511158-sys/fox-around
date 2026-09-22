@@ -12,8 +12,7 @@ const fetchGistSiteData = async () => {
     const res = await fetch(`https://api.github.com/gists/${GIST_ID}?_t=${Date.now()}_${Math.random().toString(36).substring(2)}`, {
       headers: {
         'Accept': 'application/vnd.github.v3+json',
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache'
+        'Authorization': `token ${GIST_TOKEN}`
       }
     });
     if (res.ok) {
@@ -117,8 +116,7 @@ const fetchGistFormResponses = async () => {
     const res = await fetch(`https://api.github.com/gists/${GIST_ID}?_t=${Date.now()}_${Math.random().toString(36).substring(2)}`, {
       headers: {
         'Accept': 'application/vnd.github.v3+json',
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache'
+        'Authorization': `token ${GIST_TOKEN}`
       }
     });
     if (res.ok) {
