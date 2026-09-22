@@ -162,12 +162,7 @@ export const AppProvider = ({ children }) => {
     try {
       localStorage.setItem(`cms_web_${key}`, JSON.stringify(val));
     } catch (e) {
-      try {
-        const lightweightVal = stripLargeImages(val);
-        localStorage.setItem(`cms_web_${key}`, JSON.stringify(lightweightVal));
-      } catch (err) {
-        console.warn(`Error saving lightweight ${key} to localStorage:`, err);
-      }
+      console.warn(`localStorage quota exceeded for ${key}. Relying on IndexedDB & Gist Cloud DB.`);
     }
   };
 
