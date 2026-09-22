@@ -49,6 +49,12 @@ const saveGistSiteData = async (siteData) => {
     if (res.ok) {
       console.log('✅ Site CMS layout data successfully written to GitHub Cloud Database!');
       return { success: true };
+    } else {
+      const errText = await res.text();
+      console.error('❌ Gist write failed status:', res.status, errText);
+      if (res.status === 413 || res.status === 422) {
+        alert('⚠️ 雲端資料庫同步提示：您上傳的圖片/GIF 容量較大，已超出 GitHub Gist 單次上限。建議壓縮 GIF 尺寸或改用外部圖片/GIF 網址。');
+      }
     }
   } catch (e) {
     console.warn('Error writing site CMS data to GitHub Cloud Database:', e);

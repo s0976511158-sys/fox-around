@@ -492,11 +492,11 @@ export const AdminDashboard = () => {
     showToast('📢 公告已發布！已自動擷取【網站公告】進行局部雲端同步');
   };
 
-  // 本地圖片 Canvas 高效壓縮工具函式
-  const compressImage = (file, maxWidth = 1200, quality = 0.75) => {
+  // 本地圖片 Canvas 高效微型壓縮工具函式 (確保 Base64 絕不超過伺服器上限)
+  const compressImage = (file, maxWidth = 900, quality = 0.70) => {
     return new Promise((resolve, reject) => {
-      // 檔案小於 150KB 直接讀取不重壓
-      if (file.size <= 150 * 1024) {
+      // 檔案小於 100KB 直接讀取不重壓
+      if (file.size <= 100 * 1024) {
         const reader = new FileReader();
         reader.onload = (e) => resolve(e.target.result);
         reader.onerror = reject;
@@ -507,6 +507,9 @@ export const AdminDashboard = () => {
       // 動態 GIF 檔案（不論檔案大小）絕不可經過 Canvas，因為 Canvas 轉繪會將多幀動態 GIF 變為單幀靜態照片！
       const isGif = file.type === 'image/gif' || (file.name && file.name.toLowerCase().endsWith('.gif'));
       if (isGif) {
+        if (file.size > 2.5 * 1024 * 1024) {
+          alert(`⚠️ 注意：您上傳的 GIF 動畫檔案容量較大 (${(file.size / (1024 * 1024)).toFixed(1)}MB)！若雲端同步失敗，請先將 GIF 壓縮至 2.5MB 以下，或直接貼上網路 GIF 網址。`);
+        }
         const reader = new FileReader();
         reader.onload = (e) => resolve(e.target.result);
         reader.onerror = reject;
@@ -544,8 +547,7 @@ export const AdminDashboard = () => {
           }
 
           ctx.drawImage(img, 0, 0, width, height);
-          const outputType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
-          const compressedDataUrl = canvas.toDataURL(outputType, quality);
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
           resolve(compressedDataUrl);
         };
         img.onerror = (err) => reject(err);
@@ -556,7 +558,7 @@ export const AdminDashboard = () => {
     });
   };
 
-  // 通用本地檔案上傳 (採用智慧 Canvas 超微壓縮，直接經由 Firestore 雲端資料庫免費同步)
+  // 通用本地檔案上傳 (採用智慧 Canvas 超微壓縮，直接經由 GitHub 雲端資料庫即時同步)
   const handleFileUpload = async (e, callback) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
@@ -570,7 +572,7 @@ export const AdminDashboard = () => {
       showToast('⏳ 正在智慧優化壓縮圖片中...');
       const compressedDataUrl = await compressImage(file);
       callback(compressedDataUrl);
-      showToast('⚡ 圖片已成功優化壓縮！儲存後將經由 Firestore 雲端資料庫跨裝置即時同步。');
+      showToast('⚡ 圖片已成功優化壓縮！儲存後將經由 GitHub 雲端資料庫跨裝置即時同步。');
     } catch (err) {
       console.error('圖片壓縮失敗，改用原圖讀取:', err);
       const reader = new FileReader();
