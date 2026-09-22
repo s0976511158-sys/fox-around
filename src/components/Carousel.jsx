@@ -3,7 +3,7 @@ import { useApp } from '../context/AppContext';
 import { ChevronLeft, ChevronRight, Pause, ExternalLink, Sparkles, Film, Edit3 } from 'lucide-react';
 
 export const Carousel = () => {
-  const { carouselItems, categories, openImageModal, heroConfig, isAdmin, openLoginModal, startEditCarousel } = useApp();
+  const { carouselItems, categories, openImageModal, heroConfig, isAdmin, openLoginModal, startEditCarousel, cleanCdnUrl } = useApp();
   const [selectedCategory, setSelectedCategory] = useState('全部');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
@@ -20,20 +20,22 @@ export const Carousel = () => {
     setCurrentIndex(0);
   };
 
-  // ⚡ 圖片與 GIF 高速背景預載入機制 (優先預載入 WebP 動畫，存入瀏覽器快取達成 0 毫秒極速顯示)
+  // ⚡ 圖片與 GIF 高速背景預載入機制
   useEffect(() => {
     if (!carouselItems || carouselItems.length === 0) return;
     carouselItems.forEach(item => {
-      if (item.imageUrl && !item.imageUrl.includes('giphy.com')) {
+      const cleanImg = cleanCdnUrl(item.imageUrl);
+      const cleanGif = cleanCdnUrl(item.gifUrl);
+      if (cleanImg && !cleanImg.includes('giphy.com')) {
         const img = new Image();
-        img.src = item.imageUrl;
+        img.src = cleanImg;
       }
-      if (item.gifUrl && !item.gifUrl.includes('giphy.com')) {
+      if (cleanGif && !cleanGif.includes('giphy.com')) {
         const gif = new Image();
-        gif.src = item.gifUrl;
+        gif.src = cleanGif;
       }
     });
-  }, [carouselItems]);
+  }, [carouselItems, cleanCdnUrl]);
 
   // 自動輪播 (當滑鼠移上去 isHovered 時自動暫停)
   useEffect(() => {
@@ -145,9 +147,11 @@ export const Carousel = () => {
         {/* 圖片展示 (Hover 移入圖片區域切換 GIF) */}
         <img
           src={
-            (showGif && currentSlide.gifUrl && !currentSlide.gifUrl.startsWith('./images/'))
-              ? currentSlide.gifUrl
-              : ((currentSlide.imageUrl && !currentSlide.imageUrl.startsWith('./images/')) ? currentSlide.imageUrl : (currentSlide.gifUrl && !currentSlide.gifUrl.startsWith('./images/') ? currentSlide.gifUrl : 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1200&auto=format&fit=crop'))
+            cleanCdnUrl(
+              (showGif && currentSlide.gifUrl && !currentSlide.gifUrl.startsWith('./images/'))
+                ? currentSlide.gifUrl
+                : ((currentSlide.imageUrl && !currentSlide.imageUrl.startsWith('./images/')) ? currentSlide.imageUrl : (currentSlide.gifUrl && !currentSlide.gifUrl.startsWith('./images/') ? currentSlide.gifUrl : 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1200&auto=format&fit=crop'))
+            )
           }
           alt={currentSlide.title}
           className="carousel-slide-img"

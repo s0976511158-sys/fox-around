@@ -3,7 +3,7 @@ import { useApp } from '../context/AppContext';
 import { X, Sparkles, Film, ArrowRight, ExternalLink, Edit3 } from 'lucide-react';
 
 export const ImageModal = () => {
-  const { selectedImageModal, closeImageModal, setActiveTab, isAdmin, startEditCarousel, heroConfig } = useApp();
+  const { selectedImageModal, closeImageModal, setActiveTab, isAdmin, startEditCarousel, heroConfig, cleanCdnUrl } = useApp();
 
   if (!selectedImageModal) return null;
 
@@ -72,7 +72,7 @@ export const ImageModal = () => {
         {/* Modal 左側大圖 / GIF */}
         <div className="modal-img-wrapper">
           <img
-            src={selectedImageModal.gifUrl || selectedImageModal.imageUrl}
+            src={cleanCdnUrl(selectedImageModal.gifUrl || selectedImageModal.imageUrl)}
             alt={selectedImageModal.title}
             className="modal-img"
           />

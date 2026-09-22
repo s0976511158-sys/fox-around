@@ -3,7 +3,7 @@ import { useApp } from '../context/AppContext';
 import { ChevronLeft, ChevronRight, Pause, Film, CheckCircle2, ArrowRight, Sparkles, Tag, Filter } from 'lucide-react';
 
 export const ShowcaseSlider = () => {
-  const { showcaseItems, categories, setActiveTab, heroConfig, customPages = [] } = useApp();
+  const { showcaseItems, categories, setActiveTab, heroConfig, customPages = [], cleanCdnUrl } = useApp();
   const [selectedCategory, setSelectedCategory] = useState('全部');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
@@ -11,20 +11,22 @@ export const ShowcaseSlider = () => {
   const [hoveredThumbId, setHoveredThumbId] = useState(null);
   const thumbStripRef = useRef(null);
 
-  // ⚡ 圖片與 GIF 高速背景預載入機制 (優先預載入 WebP 動畫，存入瀏覽器快取達成 0 毫秒極速顯示)
+  // ⚡ 圖片與 GIF 高速背景預載入機制
   useEffect(() => {
     if (!showcaseItems || showcaseItems.length === 0) return;
     showcaseItems.forEach(item => {
-      if (item.imageUrl && !item.imageUrl.includes('giphy.com')) {
+      const cleanImg = cleanCdnUrl(item.imageUrl);
+      const cleanGif = cleanCdnUrl(item.gifUrl);
+      if (cleanImg && !cleanImg.includes('giphy.com')) {
         const img = new Image();
-        img.src = item.imageUrl;
+        img.src = cleanImg;
       }
-      if (item.gifUrl && !item.gifUrl.includes('giphy.com')) {
+      if (cleanGif && !cleanGif.includes('giphy.com')) {
         const gif = new Image();
-        gif.src = item.gifUrl;
+        gif.src = cleanGif;
       }
     });
-  }, [showcaseItems]);
+  }, [showcaseItems, cleanCdnUrl]);
 
   // 根據選擇的主題分類過濾項目
   const filteredItems = showcaseItems.filter(item => {
@@ -153,9 +155,11 @@ export const ShowcaseSlider = () => {
               {/* 左側動態輪播圖片/GIF (Hover 移入圖片區域時切換為 GIF 放大) */}
               <img
                 src={
-                  (showGif && currentItem.gifUrl && !currentItem.gifUrl.startsWith('./images/'))
-                    ? currentItem.gifUrl
-                    : ((currentItem.imageUrl && !currentItem.imageUrl.startsWith('./images/')) ? currentItem.imageUrl : (currentItem.gifUrl && !currentItem.gifUrl.startsWith('./images/') ? currentItem.gifUrl : 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=1200&auto=format&fit=crop'))
+                  cleanCdnUrl(
+                    (showGif && currentItem.gifUrl && !currentItem.gifUrl.startsWith('./images/'))
+                      ? currentItem.gifUrl
+                      : ((currentItem.imageUrl && !currentItem.imageUrl.startsWith('./images/')) ? currentItem.imageUrl : (currentItem.gifUrl && !currentItem.gifUrl.startsWith('./images/') ? currentItem.gifUrl : 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=1200&auto=format&fit=crop'))
+                  )
                 }
                 alt={currentItem.title}
                 className="showcase-media-img"
@@ -223,7 +227,7 @@ export const ShowcaseSlider = () => {
                   className={`showcase-thumb-item ${currentIndex === idx ? 'active' : ''}`}
                 >
                   <img 
-                    src={(hoveredThumbId === item.id && item.gifUrl) ? item.gifUrl : (item.imageUrl || item.gifUrl)} 
+                    src={cleanCdnUrl((hoveredThumbId === item.id && item.gifUrl) ? item.gifUrl : (item.imageUrl || item.gifUrl))} 
                     alt={item.title} 
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
                   />

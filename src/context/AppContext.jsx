@@ -7,6 +7,45 @@ import { setDBItem, getDBItem, clearAllDB } from '../utils/dbStorage';
 const GIST_ID = 'c8cbc7aad1ec4d632a71f2f6dfbd9bb5';
 const GIST_TOKEN = ['gho_', 'sdUhiRdWN7', 'NJF18Vjjjg', 'PxbsrAoa', 'PE2YXQEg'].join('');
 
+// 智慧清理與標準化 GitHub Gist CDN 圖片網址 (自動去除舊版本 commit SHA 與修復相對路徑，防止 404)
+export const cleanCdnUrl = (url) => {
+  if (!url || typeof url !== 'string') return url || '';
+  let cleaned = url.trim();
+
+  // 若含 commit SHA (40 個 16 進位字元)，自動轉為永久無版本限制的直連 CDN 網址
+  if (cleaned.includes('gist.githubusercontent.com') && /\/raw\/[a-f0-9]{40}\//i.test(cleaned)) {
+    cleaned = cleaned.replace(/\/raw\/[a-f0-9]{40}\//i, '/raw/');
+  }
+
+  // 若傳入相對路徑 (如 /95d8749e.../media_xxx.webp 或 /a/media_xxx.webp 或 media_xxx.webp)
+  if (cleaned.includes('media_')) {
+    const filenameMatch = cleaned.match(/(media_[a-zA-Z0-9_\-]+\.(?:webp|gif|png|jpg|jpeg))/i);
+    if (filenameMatch) {
+      return `https://gist.githubusercontent.com/s0976511158-sys/${GIST_ID}/raw/${filenameMatch[1]}`;
+    }
+  }
+
+  return cleaned;
+};
+
+const sanitizeSiteDataImageUrls = (val) => {
+  if (val === null || val === undefined) return val;
+  if (typeof val === 'string') {
+    return cleanCdnUrl(val);
+  }
+  if (Array.isArray(val)) {
+    return val.map(sanitizeSiteDataImageUrls);
+  }
+  if (typeof val === 'object') {
+    const cleaned = {};
+    for (const key of Object.keys(val)) {
+      cleaned[key] = sanitizeSiteDataImageUrls(val[key]);
+    }
+    return cleaned;
+  }
+  return val;
+};
+
 const fetchGistSiteData = async () => {
   try {
     const res = await fetch(`https://api.github.com/gists/${GIST_ID}?_t=${Date.now()}_${Math.random().toString(36).substring(2)}`, {
@@ -21,7 +60,7 @@ const fetchGistSiteData = async () => {
       if (file && file.content) {
         const parsed = JSON.parse(file.content);
         if (parsed && typeof parsed === 'object') {
-          return parsed;
+          return sanitizeSiteDataImageUrls(parsed);
         }
       }
     }
@@ -33,10 +72,11 @@ const fetchGistSiteData = async () => {
 
 const saveGistSiteData = async (siteData) => {
   try {
+    const sanitizedData = sanitizeSiteDataImageUrls(siteData);
     const payload = {
       files: {
         'site_data.json': {
-          content: JSON.stringify(siteData, null, 2)
+          content: JSON.stringify(sanitizedData, null, 2)
         }
       }
     };
@@ -89,8 +129,10 @@ export const uploadFileToGitHubGist = async (fileDataUrl, ext = 'webp') => {
     if (res.ok) {
       const data = await res.json();
       if (data.files && data.files[filename]) {
-        console.log('✅ File uploaded to GitHub Gist CDN:', data.files[filename].raw_url);
-        return { success: true, url: data.files[filename].raw_url };
+        const rawUrl = data.files[filename].raw_url || '';
+        const unversionedUrl = cleanCdnUrl(rawUrl);
+        console.log('✅ File uploaded to GitHub Gist CDN:', unversionedUrl);
+        return { success: true, url: unversionedUrl };
       }
     }
   } catch (e) {
@@ -1346,6 +1388,7 @@ export const AppProvider = ({ children }) => {
       setTargetEditCarouselItem,
       startEditCarousel,
       uploadFileToGitHubGist,
+      cleanCdnUrl,
       resetToDefaultData,
       syncToCloud,
       syncAllToCloud
