@@ -59,6 +59,7 @@ export const AdminDashboard = () => {
     deleteCustomPage,
     targetEditCarouselItem,
     setTargetEditCarouselItem,
+    uploadFileToGitHubGist,
     resetToDefaultData,
     syncAllToCloud
   } = useApp();
@@ -570,7 +571,7 @@ export const AdminDashboard = () => {
     });
   };
 
-  // 通用本地檔案上傳 (採用智慧 Canvas 超微壓縮，直接經由 GitHub 雲端資料庫即時同步)
+  // 通用本地檔案上傳 (採用智慧 GitHub 雲端 CDN 自動託管，生成永久專屬網址，全訪客即時讀取)
   const handleFileUpload = async (e, callback) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
@@ -581,16 +582,39 @@ export const AdminDashboard = () => {
     }
 
     try {
-      showToast('⏳ 正在智慧優化壓縮圖片中...');
-      const compressedDataUrl = await compressImage(file);
-      callback(compressedDataUrl);
-      showToast('⚡ 圖片已成功優化壓縮！儲存後將經由 GitHub 雲端資料庫跨裝置即時同步。');
+      showToast('⏳ 正在將圖片/GIF 智慧處理並自動上傳至 GitHub 雲端 CDN...');
+      const isGif = file.type === 'image/gif' || (file.name && file.name.toLowerCase().endsWith('.gif'));
+      
+      let base64Data = '';
+      if (isGif) {
+        base64Data = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (event) => resolve(event.target.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      } else {
+        base64Data = await compressImage(file, 800, 0.70);
+      }
+
+      const ext = isGif ? 'gif' : 'webp';
+      const uploadRes = await uploadFileToGitHubGist(base64Data, ext);
+
+      if (uploadRes && uploadRes.success && uploadRes.url) {
+        callback(uploadRes.url);
+        showToast('✅ 圖片/GIF 成功上傳至 GitHub 雲端 CDN！已產生專屬網址，點擊『儲存修改內容』全訪客即可看到！');
+        return;
+      }
+
+      // 備用方案：當網路或權限受限時
+      callback(base64Data);
+      showToast('⚡ 已成功讀取圖片！請點擊『儲存修改內容』進行雲端同步。');
     } catch (err) {
-      console.error('圖片壓縮失敗，改用原圖讀取:', err);
+      console.error('檔案處理上傳失敗:', err);
       const reader = new FileReader();
       reader.onload = (event) => {
         callback(event.target.result);
-        showToast('📁 已讀取本地圖片檔案！');
+        showToast('📁 已讀取本地檔案！請點擊『儲存修改內容』。');
       };
       reader.readAsDataURL(file);
     }

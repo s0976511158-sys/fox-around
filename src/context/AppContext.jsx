@@ -66,6 +66,40 @@ const saveGistSiteData = async (siteData) => {
   return { success: false };
 };
 
+export const uploadFileToGitHubGist = async (fileDataUrl, ext = 'webp') => {
+  try {
+    const filename = `media_${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${ext}`;
+    const payload = {
+      files: {
+        [filename]: {
+          content: fileDataUrl
+        }
+      }
+    };
+
+    const res = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+      method: 'PATCH',
+      headers: {
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json',
+        'Authorization': `token ${GIST_TOKEN}`
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data.files && data.files[filename]) {
+        console.log('✅ File uploaded to GitHub Gist CDN:', data.files[filename].raw_url);
+        return { success: true, url: data.files[filename].raw_url };
+      }
+    }
+  } catch (e) {
+    console.warn('Error uploading media file to GitHub Gist CDN:', e);
+  }
+  return { success: false };
+};
+
 // 相容本地存取與線上 GitHub Gist 資料庫寫入 Helper
 const saveToFirestore = async (data, currentState = null) => {
   try {
@@ -1313,6 +1347,7 @@ export const AppProvider = ({ children }) => {
       targetEditCarouselItem,
       setTargetEditCarouselItem,
       startEditCarousel,
+      uploadFileToGitHubGist,
       resetToDefaultData,
       syncToCloud,
       syncAllToCloud
