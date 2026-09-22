@@ -968,20 +968,31 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
 }
 
-/* 打字框/回答格內提示字 (Placeholder) 手機端跑馬燈 (Marquee) 平滑滾動動效 */
-@keyframes placeholderMarqueeScroll {
+/* 打字框/回答格內部無縫連續跑馬燈 (Marquee) 動效 */
+@keyframes marqueeLoopSeamless {
   0% { transform: translateX(0%); }
-  20% { transform: translateX(0%); }
-  80% { transform: translateX(-40%); }
-  100% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
 }
 
-@media (max-width: 640px) {
-  .form-control::placeholder {
-    display: inline-block;
-    white-space: nowrap;
-    animation: placeholderMarqueeScroll 7s ease-in-out infinite alternate;
-  }
+.input-marquee-overlay {
+  position: absolute;
+  left: 1.1rem;
+  right: 1.1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  color: var(--text-muted);
+  opacity: 0.75;
+  font-size: 0.92rem;
+}
+
+.input-marquee-overlay .marquee-loop-track {
+  display: inline-block;
+  white-space: nowrap;
+  animation: marqueeLoopSeamless 12s linear infinite;
 }
 
 .radio-group, .checkbox-group {

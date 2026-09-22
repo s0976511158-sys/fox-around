@@ -7,6 +7,7 @@ export const FormPage = ({ embedded = false }) => {
   const [formData, setFormData] = useState({});
   const [submitted, setSubmitted] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [focusedQId, setFocusedQId] = useState(null);
 
   // 動態判定活動與問卷是否已截止 (支援手動設定與時間自動比對)
   const now = new Date();
@@ -200,24 +201,50 @@ export const FormPage = ({ embedded = false }) => {
 
               {/* 短單行文字 / Email */}
               {(q.type === 'text' || q.type === 'email') && (
-                <input
-                  type={q.type}
-                  className="form-control"
-                  placeholder={q.placeholder || '請輸入內容...'}
-                  value={formData[q.id] || ''}
-                  onChange={(e) => handleInputChange(q.id, e.target.value)}
-                />
+                <div style={{ position: 'relative', width: '100%' }}>
+                  <input
+                    type={q.type}
+                    className="form-control"
+                    placeholder=""
+                    value={formData[q.id] || ''}
+                    onFocus={() => setFocusedQId(q.id)}
+                    onBlur={() => setFocusedQId(null)}
+                    onChange={(e) => handleInputChange(q.id, e.target.value)}
+                    style={{ position: 'relative', zIndex: 2, background: (focusedQId === q.id || formData[q.id]) ? undefined : 'transparent' }}
+                  />
+
+                  {(!formData[q.id] && focusedQId !== q.id) && (
+                    <div className="input-marquee-overlay">
+                      <div className="marquee-loop-track">
+                        <span>💡 {q.placeholder || '請輸入內容...'} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 💡 {q.placeholder || '請輸入內容...'} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
               )}
 
               {/* 多行文字 */}
               {q.type === 'textarea' && (
-                <textarea
-                  className="form-control"
-                  rows={4}
-                  placeholder={q.placeholder || '請輸入詳細建議...'}
-                  value={formData[q.id] || ''}
-                  onChange={(e) => handleInputChange(q.id, e.target.value)}
-                />
+                <div style={{ position: 'relative', width: '100%' }}>
+                  <textarea
+                    className="form-control"
+                    rows={4}
+                    placeholder=""
+                    value={formData[q.id] || ''}
+                    onFocus={() => setFocusedQId(q.id)}
+                    onBlur={() => setFocusedQId(null)}
+                    onChange={(e) => handleInputChange(q.id, e.target.value)}
+                    style={{ position: 'relative', zIndex: 2, background: (focusedQId === q.id || formData[q.id]) ? undefined : 'transparent' }}
+                  />
+
+                  {(!formData[q.id] && focusedQId !== q.id) && (
+                    <div className="input-marquee-overlay" style={{ top: '1.1rem', transform: 'none' }}>
+                      <div className="marquee-loop-track">
+                        <span>💡 {q.placeholder || '請輸入詳細建議...'} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 💡 {q.placeholder || '請輸入詳細建議...'} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
               )}
 
               {/* 單選題 Radio */}
