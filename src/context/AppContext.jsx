@@ -17,7 +17,7 @@ export const AppProvider = ({ children }) => {
 
   const loadInitialState = (key, fallback) => {
     try {
-      if (isNewServerDeploy) {
+      if (isNewServerDeploy && key !== 'formResponses') {
         return fallback;
       }
       const saved = localStorage.getItem(`cms_web_${key}`);
@@ -60,6 +60,30 @@ export const AppProvider = ({ children }) => {
         console.warn(`Error saving lightweight ${key} to localStorage:`, err);
       }
     }
+  };
+
+  // 輔助函式：合併多來源的表單回應 (並依提交時間降序排序)
+  const mergeFormResponsesList = (...lists) => {
+    const map = new Map();
+    for (const list of lists) {
+      if (Array.isArray(list)) {
+        for (const item of list) {
+          if (item && (item.id || item.submittedAt)) {
+            const key = item.id || `${item.submittedAt}_${JSON.stringify(item.answers || {})}`;
+            if (!map.has(key)) {
+              map.set(key, item);
+            }
+          }
+        }
+      }
+    }
+    const merged = Array.from(map.values());
+    merged.sort((a, b) => {
+      const tA = a.submittedAt ? new Date(a.submittedAt).getTime() : 0;
+      const tB = b.submittedAt ? new Date(b.submittedAt).getTime() : 0;
+      return tB - tA;
+    });
+    return merged;
   };
 
   // 白天模式 / 暗色模式狀態
@@ -164,6 +188,16 @@ export const AppProvider = ({ children }) => {
         const dbTimestamp = (await getDBItem('deployTimestamp')) || 0;
         const needServerReset = serverDeployTimestamp > dbTimestamp || isNewServerDeploy;
 
+        // 預先取得與保留所有來源的表單回應 (防止伺服器部署重置時誤刪使用者回應紀錄)
+        const localSavedResp = localStorage.getItem('cms_web_formResponses');
+        const localRespArr = localSavedResp ? JSON.parse(localSavedResp) : [];
+        const dbRespArr = (await getDBItem('formResponses')) || [];
+        const preservedResponses = mergeFormResponsesList(
+          localRespArr,
+          dbRespArr,
+          initialData.formResponses
+        );
+
         if (needServerReset) {
           console.log('Detected new server deploy. Syncing all device state from initialData...');
           await clearAllDB();
@@ -178,11 +212,17 @@ export const AppProvider = ({ children }) => {
           if (initialData.carouselItems) setCarouselItems(initialData.carouselItems);
           if (initialData.showcaseItems) setShowcaseItems(initialData.showcaseItems);
           if (initialData.formQuestions) setFormQuestions(initialData.formQuestions);
-          if (initialData.formResponses) setFormResponses(initialData.formResponses);
           if (initialData.sponsors) setSponsors(initialData.sponsors);
           if (initialData.customPages) setCustomPages(initialData.customPages);
           if (initialData.featureCards) setFeatureCards(initialData.featureCards);
           if (initialData.introCards) setIntroCards(initialData.introCards);
+
+          // 伺服器重新部署後，完整保留使用者已填寫的表單回應
+          if (preservedResponses.length > 0) {
+            setFormResponses(preservedResponses);
+            saveState('formResponses', preservedResponses);
+            await setDBItem('formResponses', preservedResponses);
+          }
 
           setIsDBSynced(true);
           return;
@@ -291,14 +331,13 @@ export const AppProvider = ({ children }) => {
           });
         }
 
-        const dbFormResponses = await getDBItem('formResponses');
-        if (dbFormResponses) {
-          setFormResponses(prev => {
-            if (isEqual(prev, dbFormResponses)) return prev;
-            saveState('formResponses', dbFormResponses);
-            return dbFormResponses;
-          });
-        }
+        setFormResponses(prev => {
+          const merged = mergeFormResponsesList(preservedResponses, prev);
+          if (isEqual(prev, merged)) return prev;
+          saveState('formResponses', merged);
+          setDBItem('formResponses', merged);
+          return merged;
+        });
 
         const dbCustomPages = await getDBItem('customPages');
         if (dbCustomPages) {
@@ -806,7 +845,9 @@ export const AppProvider = ({ children }) => {
     };
 
     setFormResponses(prev => {
-      const updated = [newResponse, ...prev];
+      const updated = mergeFormResponsesList([newResponse], prev);
+      saveState('formResponses', updated);
+      setDBItem('formResponses', updated);
       saveToFirestore({ formResponses: updated }).catch(() => {});
       return updated;
     });
@@ -814,6 +855,8 @@ export const AppProvider = ({ children }) => {
 
   const clearFormResponses = () => {
     setFormResponses([]);
+    saveState('formResponses', []);
+    setDBItem('formResponses', []);
     saveToFirestore({ formResponses: [] }).catch(() => {});
   };
 
@@ -821,8 +864,16 @@ export const AppProvider = ({ children }) => {
     try {
       const dbResponses = await getDBItem('formResponses');
       const localSaved = localStorage.getItem('cms_web_formResponses');
-      const latest = dbResponses || (localSaved ? JSON.parse(localSaved) : null) || initialData.formResponses || [];
+      const localResponses = localSaved ? JSON.parse(localSaved) : [];
+      const latest = mergeFormResponsesList(
+        dbResponses,
+        localResponses,
+        initialData.formResponses,
+        formResponses
+      );
       setFormResponses(latest);
+      saveState('formResponses', latest);
+      await setDBItem('formResponses', latest);
       return { success: true, count: latest.length };
     } catch (e) {
       console.error('Error refreshing form responses:', e);
