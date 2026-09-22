@@ -768,76 +768,103 @@ export const AdminDashboard = () => {
     return c.targetLocation === cardFilterLocation;
   });
 
-  // 訪客未驗證時的專屬頁面提示 (使用者需求：把一般登入管理者取消，改成有管理者專屬頁面)
+  // 彈窗未開啟時，絕對不渲染任何 HTML (避免出現在網頁底部)
+  if (!isAdminDashboardOpen) return null;
+
+  // 未驗證身份時彈出簡潔解鎖畫面
   if (!isAdmin) {
     return (
-      <div className="glass-panel animate-fade-in" style={{ padding: '3.5rem 2rem', textAlign: 'center', maxWidth: '560px', margin: '3.5rem auto' }}>
-        <div style={{ width: '68px', height: '68px', borderRadius: '20px', background: 'rgba(236, 72, 153, 0.2)', color: 'var(--accent-pink)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem auto', boxShadow: '0 0 25px rgba(236, 72, 153, 0.3)' }}>
-          <Lock size={36} />
-        </div>
-
-        <span className="badge badge-pink" style={{ marginBottom: '0.75rem', fontSize: '0.85rem' }}>
-          🔒 管理者專屬控制台
-        </span>
-
-        <h2 style={{ fontSize: '2rem', color: 'var(--text-title)', fontWeight: '800', marginBottom: '0.75rem' }}>
-          管理者專屬獨立頁面
-        </h2>
-        
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.96rem', marginBottom: '2rem', lineHeight: '1.7' }}>
-          此處為<strong>【管理者專屬工作台】</strong>。請輸入管理者通行密碼解鎖權限。
-        </p>
-
-        {loginError && (
-          <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.4)', color: '#fca5a5', padding: '0.85rem', borderRadius: 'var(--radius-md)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
-            ⚠️ {loginError}
-          </div>
-        )}
-
-        <form onSubmit={handlePageLogin} style={{ background: 'rgba(0, 0, 0, 0.2)', padding: '1.5rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-glass)' }}>
-          <div className="form-group" style={{ textAlign: 'left', marginBottom: '1.25rem' }}>
-            <label className="form-label">
-              <span>請輸入管理者專屬通行密碼</span>
-            </label>
-            <div style={{ position: 'relative' }}>
-              <input
-                type={showInputPwd ? 'text' : 'password'}
-                className="form-control"
-                placeholder="輸入專屬授權密碼..."
-                value={inputPassword}
-                onChange={(e) => setInputPassword(e.target.value)}
-                required
-                style={{ paddingRight: '2.8rem' }}
-              />
-              <button
-                type="button"
-                onClick={() => setShowInputPwd(!showInputPwd)}
-                style={{
-                  position: 'absolute',
-                  right: '0.8rem',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  background: 'transparent',
-                  border: 'none',
-                  color: 'var(--text-muted)',
-                  cursor: 'pointer'
-                }}
-              >
-                {showInputPwd ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
-            </div>
-          </div>
-
-          <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '0.85rem', fontSize: '1.02rem' }}>
-            <KeyRound size={18} />
-            解鎖並進入管理者專屬頁面
+      <div className="modal-backdrop" onClick={closeAdminDashboard} style={{ zIndex: 9999, overflowY: 'auto', padding: '1.5rem 0' }}>
+        <div 
+          className="glass-panel animate-fade-in" 
+          onClick={(e) => e.stopPropagation()}
+          style={{ 
+            padding: '3rem 2rem', 
+            textAlign: 'center', 
+            maxWidth: '500px', 
+            width: '90%', 
+            margin: '8vh auto',
+            position: 'relative',
+            background: 'rgba(11, 15, 25, 0.97)',
+            border: '1.5px solid var(--border-glass-bright)',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.85)',
+            borderRadius: 'var(--radius-lg)'
+          }}
+        >
+          <button 
+            className="modal-close-btn" 
+            onClick={closeAdminDashboard} 
+            aria-label="關閉"
+            style={{ position: 'absolute', top: '1.25rem', right: '1.25rem', zIndex: 100 }}
+          >
+            <X size={20} />
           </button>
-        </form>
+
+          <div style={{ width: '64px', height: '64px', borderRadius: '18px', background: 'rgba(236, 72, 153, 0.2)', color: 'var(--accent-pink)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem auto', boxShadow: '0 0 25px rgba(236, 72, 153, 0.3)' }}>
+            <Lock size={32} />
+          </div>
+
+          <span className="badge badge-pink" style={{ marginBottom: '0.75rem', fontSize: '0.82rem' }}>
+            🔒 管理者身份解鎖
+          </span>
+
+          <h2 style={{ fontSize: '1.75rem', color: 'var(--text-title)', fontWeight: '800', marginBottom: '0.5rem' }}>
+            管理者通行驗證
+          </h2>
+          
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem', marginBottom: '1.75rem', lineHeight: '1.6' }}>
+            請輸入管理者授權密碼以開啟後台管理控制面板。
+          </p>
+
+          {loginError && (
+            <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.4)', color: '#fca5a5', padding: '0.75rem 1rem', borderRadius: 'var(--radius-md)', marginBottom: '1.25rem', fontSize: '0.88rem' }}>
+              ⚠️ {loginError}
+            </div>
+          )}
+
+          <form onSubmit={handlePageLogin} style={{ background: 'rgba(0, 0, 0, 0.2)', padding: '1.25rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-glass)' }}>
+            <div className="form-group" style={{ textAlign: 'left', marginBottom: '1.25rem' }}>
+              <label className="form-label">
+                <span>管理者授權密碼</span>
+              </label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  type={showInputPwd ? 'text' : 'password'}
+                  className="form-control"
+                  placeholder="請輸入密碼..."
+                  value={inputPassword}
+                  onChange={(e) => setInputPassword(e.target.value)}
+                  required
+                  style={{ paddingRight: '2.8rem' }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowInputPwd(!showInputPwd)}
+                  style={{
+                    position: 'absolute',
+                    right: '0.8rem',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'var(--text-muted)',
+                    cursor: 'pointer'
+                  }}
+                >
+                  {showInputPwd ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+
+            <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '0.8rem', fontSize: '1rem' }}>
+              <KeyRound size={18} />
+              確認解鎖管理者面板
+            </button>
+          </form>
+        </div>
       </div>
     );
   }
-
-  if (!isAdmin || !isAdminDashboardOpen) return null;
 
   return (
     <div className="modal-backdrop" onClick={closeAdminDashboard} style={{ zIndex: 9999, overflowY: 'auto', padding: '1.5rem 0' }}>
