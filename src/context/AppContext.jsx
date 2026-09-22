@@ -279,6 +279,7 @@ export const AppProvider = ({ children }) => {
   const [showcaseItems, setShowcaseItems] = useState(() => loadInitialState('showcaseItems', initialData.showcaseItems));
   const [formQuestions, setFormQuestions] = useState(() => loadInitialState('formQuestions', initialData.formQuestions));
   const [formResponses, setFormResponses] = useState(() => loadInitialState('formResponses', initialData.formResponses));
+  const [sponsors, setSponsors] = useState(() => loadInitialState('sponsors', initialData.sponsors));
   const [customPages, setCustomPages] = useState(() => loadInitialState('customPages', []));
 
   const latestStateRef = useRef({});
