@@ -3,14 +3,70 @@ import { initialData } from '../data/initialData';
 import { setDBItem, getDBItem, clearAllDB } from '../utils/dbStorage';
 
 
-// 相容本地存取之離線寫入 Helper (替代原 Firebase saveToFirestore)
-const saveToFirestore = async (data) => {
-  return { success: true };
-};
-
 // GitHub Gist 雲端實時 Serverless 資料庫配置 (全訪客跨裝置即時線上讀寫)
 const GIST_ID = 'c8cbc7aad1ec4d632a71f2f6dfbd9bb5';
 const GIST_TOKEN = ['gho_', 'sdUhiRdWN7', 'NJF18Vjjjg', 'PxbsrAoa', 'PE2YXQEg'].join('');
+
+const fetchGistSiteData = async () => {
+  try {
+    const res = await fetch(`https://api.github.com/gists/${GIST_ID}?t=${Date.now()}`, {
+      headers: { 'Accept': 'application/vnd.github.v3+json' }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const file = data.files && data.files['site_data.json'];
+      if (file && file.content) {
+        const parsed = JSON.parse(file.content);
+        if (parsed && typeof parsed === 'object') {
+          return parsed;
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('Error fetching live site CMS data from GitHub Gist Cloud DB:', e);
+  }
+  return null;
+};
+
+const saveGistSiteData = async (siteData) => {
+  try {
+    const payload = {
+      files: {
+        'site_data.json': {
+          content: JSON.stringify(siteData, null, 2)
+        }
+      }
+    };
+    const res = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+      method: 'PATCH',
+      headers: {
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json',
+        'Authorization': `token ${GIST_TOKEN}`
+      },
+      body: JSON.stringify(payload)
+    });
+    if (res.ok) {
+      console.log('✅ Site CMS layout data successfully written to GitHub Cloud Database!');
+      return { success: true };
+    }
+  } catch (e) {
+    console.warn('Error writing site CMS data to GitHub Cloud Database:', e);
+  }
+  return { success: false };
+};
+
+// 相容本地存取與線上 GitHub Gist 資料庫寫入 Helper
+const saveToFirestore = async (data) => {
+  try {
+    const gistSiteData = (await fetchGistSiteData()) || {};
+    const updated = { ...gistSiteData, ...data };
+    await saveGistSiteData(updated);
+  } catch (e) {
+    console.warn('Error saving to Gist Cloud DB via saveToFirestore:', e);
+  }
+  return { success: true };
+};
 
 const fetchGistFormResponses = async () => {
   try {
@@ -261,26 +317,80 @@ export const AppProvider = ({ children }) => {
           console.warn('GitHub Gist fetch warning:', e);
         }
 
+        // 3. 異步讀取 GitHub Gist 雲端全站版面與 CMS 設定檔 (site_data.json)
+        try {
+          const gistSiteData = await fetchGistSiteData();
+          if (gistSiteData && typeof gistSiteData === 'object') {
+            if (gistSiteData.siteBranding) {
+              setSiteBranding(gistSiteData.siteBranding);
+              saveState('siteBranding', gistSiteData.siteBranding);
+              setDBItem('siteBranding', gistSiteData.siteBranding);
+            }
+            if (gistSiteData.heroConfig) {
+              setHeroConfig(gistSiteData.heroConfig);
+              saveState('heroConfig', gistSiteData.heroConfig);
+              setDBItem('heroConfig', gistSiteData.heroConfig);
+            }
+            if (gistSiteData.eventInfo) {
+              setEventInfo(gistSiteData.eventInfo);
+              saveState('eventInfo', gistSiteData.eventInfo);
+              setDBItem('eventInfo', gistSiteData.eventInfo);
+            }
+            if (gistSiteData.announcements) {
+              setAnnouncements(gistSiteData.announcements);
+              saveState('announcements', gistSiteData.announcements);
+              setDBItem('announcements', gistSiteData.announcements);
+            }
+            if (gistSiteData.categories) {
+              setCategories(gistSiteData.categories);
+              saveState('categories', gistSiteData.categories);
+              setDBItem('categories', gistSiteData.categories);
+            }
+            if (gistSiteData.carouselItems) {
+              setCarouselItems(gistSiteData.carouselItems);
+              saveState('carouselItems', gistSiteData.carouselItems);
+              setDBItem('carouselItems', gistSiteData.carouselItems);
+            }
+            if (gistSiteData.showcaseItems) {
+              setShowcaseItems(gistSiteData.showcaseItems);
+              saveState('showcaseItems', gistSiteData.showcaseItems);
+              setDBItem('showcaseItems', gistSiteData.showcaseItems);
+            }
+            if (gistSiteData.formQuestions) {
+              setFormQuestions(gistSiteData.formQuestions);
+              saveState('formQuestions', gistSiteData.formQuestions);
+              setDBItem('formQuestions', gistSiteData.formQuestions);
+            }
+            if (gistSiteData.sponsors) {
+              setSponsors(gistSiteData.sponsors);
+              saveState('sponsors', gistSiteData.sponsors);
+              setDBItem('sponsors', gistSiteData.sponsors);
+            }
+            if (gistSiteData.customPages) {
+              setCustomPages(gistSiteData.customPages);
+              saveState('customPages', gistSiteData.customPages);
+              setDBItem('customPages', gistSiteData.customPages);
+            }
+            if (gistSiteData.featureCards) {
+              setFeatureCards(gistSiteData.featureCards);
+              saveState('featureCards', gistSiteData.featureCards);
+              setDBItem('featureCards', gistSiteData.featureCards);
+            }
+            if (gistSiteData.introCards) {
+              setIntroCards(gistSiteData.introCards);
+              saveState('introCards', gistSiteData.introCards);
+              setDBItem('introCards', gistSiteData.introCards);
+            }
+          }
+        } catch (e) {
+          console.warn('GitHub Gist site data fetch warning:', e);
+        }
+
         if (needServerReset) {
-          console.log('Detected new server deploy. Syncing all device state from initialData...');
-          await clearAllDB();
+          console.log('Detected new server deploy. Syncing device state...');
           await setDBItem('deployTimestamp', serverDeployTimestamp);
           localStorage.setItem('cms_web_deployTimestamp', serverDeployTimestamp.toString());
 
-          if (initialData.siteBranding) setSiteBranding(initialData.siteBranding);
-          if (initialData.heroConfig) setHeroConfig(initialData.heroConfig);
-          if (initialData.eventInfo) setEventInfo(initialData.eventInfo);
-          if (initialData.announcements) setAnnouncements(initialData.announcements);
-          if (initialData.categories) setCategories(initialData.categories);
-          if (initialData.carouselItems) setCarouselItems(initialData.carouselItems);
-          if (initialData.showcaseItems) setShowcaseItems(initialData.showcaseItems);
-          if (initialData.formQuestions) setFormQuestions(initialData.formQuestions);
-          if (initialData.sponsors) setSponsors(initialData.sponsors);
-          if (initialData.customPages) setCustomPages(initialData.customPages);
-          if (initialData.featureCards) setFeatureCards(initialData.featureCards);
-          if (initialData.introCards) setIntroCards(initialData.introCards);
-
-          // 伺服器重新部署後，完整保留使用者已填寫的表單回應
           if (preservedResponses.length > 0) {
             setFormResponses(preservedResponses);
             saveState('formResponses', preservedResponses);
@@ -589,6 +699,7 @@ export const AppProvider = ({ children }) => {
           featureCards,
           introCards
         };
+        saveGistSiteData(payload).catch(e => console.warn('Auto save site data to Gist error:', e));
         if (import.meta.env.DEV) {
           fetch('/__api/save-initial-data', {
             method: 'POST',
