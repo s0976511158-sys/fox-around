@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { Pagination } from '../components/Pagination';
-import { MessageSquareText, Search, Calendar, User, Mail, Trash2, Download, Star, Filter, RotateCcw, Check } from 'lucide-react';
+import { MessageSquareText, Search, Calendar, User, Mail, Trash2, Star, Filter, RotateCcw, Check } from 'lucide-react';
 
 export const ResponsesPage = () => {
   const { formResponses, formQuestions, isAdmin, clearFormResponses, refreshFormResponses, heroConfig } = useApp();
@@ -53,41 +53,6 @@ export const ResponsesPage = () => {
     setCurrentPage(1);
   };
 
-  // 匯出 CSV 檔
-  const exportToCSV = () => {
-    if (formResponses.length === 0) return;
-    
-    const exportQuestions = formQuestions.filter(q => showHiddenFields || !q.hideInResponses);
-    const headers = ['回應ID', '提交時間', ...exportQuestions.map(q => q.title)];
-    const rows = formResponses.map(r => [
-      r.id,
-      r.submittedAt,
-      ...exportQuestions.map(q => `"${String((r.answers && r.answers[q.id]) || '').replace(/"/g, '""')}"`)
-    ]);
-
-    const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `form_responses_${Date.now()}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-  // 匯出 JSON 備份檔 (包含全量結構)
-  const exportToJSON = () => {
-    if (formResponses.length === 0) return;
-    const jsonStr = JSON.stringify(formResponses, null, 2);
-    const blob = new Blob([jsonStr], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `form_responses_backup_${Date.now()}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
   return (
     <div className="animate-fade-in">
       {/* 標題與搜尋 bar */}
@@ -102,9 +67,6 @@ export const ResponsesPage = () => {
           <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', marginTop: '0.3rem' }}>
             {heroConfig?.responsesPageSubtitle || '查看訪客所提交的完整問卷資料。下方提供 1, 2, 3... 頁碼分頁切換與搜尋功能。'}
           </p>
-          <div style={{ marginTop: '0.6rem', fontSize: '0.82rem', color: 'var(--accent-emerald)', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', background: 'rgba(16, 185, 129, 0.1)', padding: '0.3rem 0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(16, 185, 129, 0.25)' }}>
-            <span>🌐 已連線 GitHub 雲端 Serverless 資料庫 (跨裝置線上同步)，共有 <strong>{formResponses.length}</strong> 筆回應</span>
-          </div>
         </div>
 
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
@@ -120,17 +82,6 @@ export const ResponsesPage = () => {
             >
               <Filter size={14} /> {showHiddenFields ? '隱藏未顯示題目' : `顯示已隱藏題目 (${hiddenCount})`}
             </button>
-          )}
-
-          {formResponses.length > 0 && (
-            <>
-              <button className="btn btn-secondary btn-sm" onClick={exportToCSV}>
-                <Download size={16} /> 匯出 CSV
-              </button>
-              <button className="btn btn-secondary btn-sm" onClick={exportToJSON} title="下載 JSON 原始備份檔">
-                <Download size={16} /> 備份 JSON
-              </button>
-            </>
           )}
 
           {isAdmin && formResponses.length > 0 && (
@@ -214,9 +165,6 @@ export const ResponsesPage = () => {
                     {resp.submittedAt}
                   </span>
                 </div>
-                <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)', fontFamily: 'monospace' }}>
-                  ID: {resp.id}
-                </span>
               </div>
 
               {/* 回應答案渲染 (相容所有已知題目與額外未對應欄位) */}
