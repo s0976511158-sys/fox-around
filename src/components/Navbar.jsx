@@ -316,7 +316,7 @@ export const Navbar = () => {
           </button>
 
           {isAdmin && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', whiteSpace: 'nowrap', flexShrink: 0 }}>
+            <div className="admin-header-controls" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', whiteSpace: 'nowrap', flexShrink: 0 }}>
               <button
                 className="badge badge-emerald"
                 onClick={openAdminDashboard}
@@ -348,7 +348,7 @@ export const Navbar = () => {
 
       {/* Mobile Menu Drawer */}
       {mobileMenuOpen && (
-        <div className="mobile-drawer">
+        <div className="mobile-drawer animate-fade-in">
           {allNavItems.map((item) => {
             const isActive = activeTab === item.id;
             return (
@@ -367,7 +367,10 @@ export const Navbar = () => {
           <button
             className="nav-item-btn"
             style={{ width: '100%', justifyContent: 'flex-start' }}
-            onClick={toggleThemeMode}
+            onClick={() => {
+              toggleThemeMode();
+              setMobileMenuOpen(false);
+            }}
           >
             {themeMode === 'dark' ? <Sun size={20} color="#f59e0b" /> : <Moon size={20} color="#6366f1" />}
             <span style={{ fontSize: '1.05rem' }}>
@@ -376,14 +379,30 @@ export const Navbar = () => {
           </button>
 
           {isAdmin && (
-            <button
-              className={`nav-item-btn ${activeTab === 'admin' ? 'active' : ''}`}
-              style={{ width: '100%', justifyContent: 'flex-start', color: '#818cf8' }}
-              onClick={() => handleNavClick('admin')}
-            >
-              <Settings size={20} />
-              <span style={{ fontSize: '1.05rem' }}>管理者控制台</span>
-            </button>
+            <>
+              <button
+                className="nav-item-btn"
+                style={{ width: '100%', justifyContent: 'flex-start', color: '#818cf8', fontWeight: '700' }}
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  openAdminDashboard();
+                }}
+              >
+                <ShieldCheck size={20} />
+                <span style={{ fontSize: '1.05rem' }}>開啟管理者控制台</span>
+              </button>
+              <button
+                className="nav-item-btn"
+                style={{ width: '100%', justifyContent: 'flex-start', color: '#ef4444' }}
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  logoutAdmin();
+                }}
+              >
+                <LogOut size={20} />
+                <span style={{ fontSize: '1.05rem' }}>登出管理者模式</span>
+              </button>
+            </>
           )}
         </div>
       )}

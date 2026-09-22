@@ -62,7 +62,7 @@ export const ResponsesPage = () => {
     const rows = formResponses.map(r => [
       r.id,
       r.submittedAt,
-      ...exportQuestions.map(q => `"${String(r.answers[q.id] || '').replace(/"/g, '""')}"`)
+      ...exportQuestions.map(q => `"${String((r.answers && r.answers[q.id]) || '').replace(/"/g, '""')}"`)
     ]);
 
     const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
@@ -73,6 +73,19 @@ export const ResponsesPage = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  // 匯出 JSON 備份檔 (包含全量結構)
+  const exportToJSON = () => {
+    if (formResponses.length === 0) return;
+    const jsonStr = JSON.stringify(formResponses, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `form_responses_backup_${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -89,6 +102,9 @@ export const ResponsesPage = () => {
           <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', marginTop: '0.3rem' }}>
             {heroConfig?.responsesPageSubtitle || '查看訪客所提交的完整問卷資料。下方提供 1, 2, 3... 頁碼分頁切換與搜尋功能。'}
           </p>
+          <div style={{ marginTop: '0.6rem', fontSize: '0.82rem', color: 'var(--accent-emerald)', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', background: 'rgba(16, 185, 129, 0.1)', padding: '0.3rem 0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(16, 185, 129, 0.25)' }}>
+            <span>💾 全量數據已寫入瀏覽器本地庫 (localStorage & IndexedDB)，共有 <strong>{formResponses.length}</strong> 筆回應</span>
+          </div>
         </div>
 
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
@@ -107,9 +123,14 @@ export const ResponsesPage = () => {
           )}
 
           {formResponses.length > 0 && (
-            <button className="btn btn-secondary btn-sm" onClick={exportToCSV}>
-              <Download size={16} /> 匯出 CSV
-            </button>
+            <>
+              <button className="btn btn-secondary btn-sm" onClick={exportToCSV}>
+                <Download size={16} /> 匯出 CSV
+              </button>
+              <button className="btn btn-secondary btn-sm" onClick={exportToJSON} title="下載 JSON 原始備份檔">
+                <Download size={16} /> 備份 JSON
+              </button>
+            </>
           )}
 
           {isAdmin && formResponses.length > 0 && (
@@ -176,7 +197,7 @@ export const ResponsesPage = () => {
             {searchTerm ? '找不到符合關鍵字的回應內容' : '目前尚無表單回應紀錄'}
           </h3>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-            {searchTerm ? '請嘗試更換搜尋關鍵字。' : '訪客填寫表單送出後，資料將自動顯示於此。'}
+            {searchTerm ? '請嘗試更換搜尋關鍵字。' : '訪客填寫表單送出後，資料將自動寫入本地庫並顯示於此。'}
           </p>
         </div>
       ) : (
@@ -198,33 +219,66 @@ export const ResponsesPage = () => {
                 </span>
               </div>
 
-              {/* 回應答案渲染 */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.25rem' }}>
-                {visibleQuestions.map(q => {
-                  const val = resp.answers[q.id];
-                  if (val === undefined || val === '') return null;
+              {/* 回應答案渲染 (相容所有已知題目與額外未對應欄位) */}
+              {(() => {
+                const answeredQuestionIds = new Set(formQuestions.map(q => q.id));
+                const answersObj = resp.answers || {};
+                const entries = Object.entries(answersObj);
+                const hasAnyAnswer = entries.some(([_, val]) => val !== undefined && val !== '');
 
+                if (!hasAnyAnswer) {
                   return (
-                    <div key={q.id} className="event-inner-box" style={{ padding: '0.9rem 1.1rem', borderRadius: 'var(--radius-md)', border: q.hideInResponses ? '1px dashed var(--accent-pink)' : undefined }}>
-                      <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '0.35rem', fontWeight: '600', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <span>{q.title}</span>
-                        {q.hideInResponses && <span style={{ fontSize: '0.7rem', color: 'var(--accent-pink)' }}>[後台設為隱藏]</span>}
-                      </div>
-                      
-                      {q.type === 'rating' ? (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: '#d97706', fontWeight: '700' }}>
-                          <Star size={16} fill="#f59e0b" color="#f59e0b" />
-                          <span>{val} 星評分</span>
-                        </div>
-                      ) : (
-                        <div style={{ fontSize: '0.95rem', color: 'var(--text-main)', wordBreak: 'break-word' }}>
-                          {String(val)}
-                        </div>
-                      )}
+                    <div style={{ padding: '0.75rem', color: 'var(--text-muted)', fontSize: '0.88rem', fontStyle: 'italic' }}>
+                      (本筆提交紀錄尚未包含詳細內容)
                     </div>
                   );
-                })}
-              </div>
+                }
+
+                return (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.25rem' }}>
+                    {/* 1. 符合目前題目的答案 */}
+                    {visibleQuestions.map(q => {
+                      const val = answersObj[q.id];
+                      if (val === undefined || val === '') return null;
+
+                      return (
+                        <div key={q.id} className="event-inner-box" style={{ padding: '0.9rem 1.1rem', borderRadius: 'var(--radius-md)', border: q.hideInResponses ? '1px dashed var(--accent-pink)' : undefined }}>
+                          <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '0.35rem', fontWeight: '600', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <span>{q.title}</span>
+                            {q.hideInResponses && <span style={{ fontSize: '0.7rem', color: 'var(--accent-pink)' }}>[後台設為隱藏]</span>}
+                          </div>
+                          
+                          {q.type === 'rating' ? (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: '#d97706', fontWeight: '700' }}>
+                              <Star size={16} fill="#f59e0b" color="#f59e0b" />
+                              <span>{val} 星評分</span>
+                            </div>
+                          ) : (
+                            <div style={{ fontSize: '0.95rem', color: 'var(--text-main)', wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>
+                              {String(val)}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+
+                    {/* 2. 額外未對應題目的舊答案與純鍵值內容 */}
+                    {entries.map(([key, val]) => {
+                      if (answeredQuestionIds.has(key) || val === undefined || val === '') return null;
+                      return (
+                        <div key={key} className="event-inner-box" style={{ padding: '0.9rem 1.1rem', borderRadius: 'var(--radius-md)', border: '1px dashed var(--accent-indigo)' }}>
+                          <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '0.35rem', fontWeight: '600' }}>
+                            欄位: {key}
+                          </div>
+                          <div style={{ fontSize: '0.95rem', color: 'var(--text-main)', wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>
+                            {String(val)}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
             </div>
           ))}
         </div>
