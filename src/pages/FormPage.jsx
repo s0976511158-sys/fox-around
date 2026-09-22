@@ -196,14 +196,7 @@ export const FormPage = ({ embedded = false }) => {
                 {q.required && <span style={{ color: 'var(--accent-pink)', marginLeft: '4px' }}>*</span>}
               </label>
 
-              {/* 手機裝置端輸入提示字單向連續跑馬燈 (完整跑馬燈) */}
-              {(q.placeholder || q.type === 'text' || q.type === 'email' || q.type === 'textarea') && (
-                <div className="mobile-marquee-hint">
-                  <div className="marquee-track">
-                    <span>💡 提示：{q.placeholder || (q.type === 'textarea' ? '請輸入詳細建議...' : '請輸入內容...')} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 💡 提示：{q.placeholder || (q.type === 'textarea' ? '請輸入詳細建議...' : '請輸入內容...')} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                  </div>
-                </div>
-              )}
+
 
               {/* 短單行文字 / Email */}
               {(q.type === 'text' || q.type === 'email') && (
