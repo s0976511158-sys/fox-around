@@ -178,23 +178,16 @@ export const Carousel = () => {
           </>
         )}
 
-        {/* 下方標題與簡介 Overlay */}
+        {/* 下方小標籤與標題 (名字) Overlay - 極簡排版無遮擋 */}
         <div className="carousel-overlay">
           <div className="carousel-caption">
-            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+            <div style={{ display: 'flex', gap: '0.4rem', marginBottom: '0.35rem', flexWrap: 'wrap' }}>
               <span className="badge badge-indigo">{currentSlide.category}</span>
               {currentSlide.tag && <span className="badge badge-pink">{currentSlide.tag}</span>}
             </div>
-            <h3 style={{ fontSize: '1.6rem', marginBottom: '0.4rem', color: '#fff' }}>
+            <h3 style={{ fontSize: '1.4rem', color: '#fff', margin: 0, fontWeight: '800' }}>
               {currentSlide.title}
             </h3>
-            <p style={{ color: '#d1d5db', fontSize: '0.95rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-              {currentSlide.description}
-            </p>
-            <div style={{ marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--accent-cyan)', fontSize: '0.85rem', fontWeight: '700' }}>
-              <span>點擊查看完整介紹與細節</span>
-              <ExternalLink size={14} />
-            </div>
           </div>
         </div>
 
