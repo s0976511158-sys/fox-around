@@ -978,8 +978,9 @@ export const AppProvider = ({ children }) => {
     if (activeTab === id) setActiveTab('home');
   };
 
-  // 重置預設資料
-  const resetToDefaultData = () => {
+  // 重置預設資料 (完整保留使用者已填寫的回應紀錄，防範被預設重整覆蓋)
+  const resetToDefaultData = async () => {
+    const preservedResponses = [...formResponses];
     setIsAdmin(false);
     setThemeMode('dark');
     setSiteBranding({ name: '我的專屬藝廊網站', logoUrl: '', footerText: '響應式現代設計視覺系統' });
@@ -1002,10 +1003,18 @@ export const AppProvider = ({ children }) => {
     setCarouselItems(initialData.carouselItems);
     setShowcaseItems(initialData.showcaseItems);
     setFormQuestions(initialData.formQuestions);
-    setFormResponses(initialData.formResponses);
     setSponsors(initialData.sponsors);
     setCustomPages([]);
     localStorage.clear();
+
+    // 重新恢復與持久化保存表單回應
+    if (preservedResponses.length > 0) {
+      setFormResponses(preservedResponses);
+      saveState('formResponses', preservedResponses);
+      await setDBItem('formResponses', preservedResponses);
+    } else {
+      setFormResponses(initialData.formResponses || []);
+    }
   };
 
   // Lightbox Modal

@@ -20,7 +20,7 @@ export const Carousel = () => {
     setCurrentIndex(0);
   };
 
-  // ⚡ 圖片與 7MB GIF 高速背景預載入機制 (存入瀏覽器快取，達到 0 毫秒極速顯示)
+  // ⚡ 圖片與 GIF 高速背景預載入機制 (優先預載入 WebP 動畫，存入瀏覽器快取達成 0 毫秒極速顯示)
   useEffect(() => {
     if (!carouselItems || carouselItems.length === 0) return;
     carouselItems.forEach(item => {
@@ -29,6 +29,8 @@ export const Carousel = () => {
         img.src = item.imageUrl;
       }
       if (item.gifUrl) {
+        const webp = new Image();
+        webp.src = item.gifUrl.endsWith('.gif') ? item.gifUrl.replace(/\.gif$/i, '.webp') : item.gifUrl;
         const gif = new Image();
         gif.src = item.gifUrl;
       }
