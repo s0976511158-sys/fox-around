@@ -3,6 +3,11 @@ import { initialData } from '../data/initialData';
 import { setDBItem, getDBItem, clearAllDB } from '../utils/dbStorage';
 
 
+// 相容本地存取之離線寫入 Helper (替代原 Firebase saveToFirestore)
+const saveToFirestore = async (data) => {
+  return { success: true };
+};
+
 const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
