@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
-import { uploadImageToFirebaseStorage } from '../config/firebase';
+
 import { Settings, Shield, Plus, Trash2, Edit3, Save, RotateCcw, Check, Sparkles, Image as ImageIcon, FileText, Layers, Info, KeyRound, Lock, Eye, EyeOff, LogOut, Tag, Globe, Upload, Link, Film, Sliders, Layout, Star, MousePointer, Filter, Megaphone, Pin, Clock, X, ArrowUp, ArrowDown, Award, Building2 } from 'lucide-react';
 
 export const AdminDashboard = () => {
@@ -942,11 +942,11 @@ export const AdminDashboard = () => {
                       管理者控制中心
                     </h2>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem', marginTop: '0.3rem', maxWidth: '750px', lineHeight: '1.6' }}>
-                      💡 <b>無需額外點擊全站同步按鈕！</b> 當您在底下任何區塊點擊「儲存 / 發布 / 新增」時，系統皆會<b>自動擷取該區塊進行極速局部雲端同步</b>（&lt;0.05 秒完成），完全不會覆蓋或重傳其他未修改的區塊。
+                      💡 <b>無需額外點擊全站同步按鈕！</b> 當您在底下任何區塊點擊「儲存 / 發布 / 新增」時，系統皆會<b>自動將最新修改同步至本地儲存</b>，完全不會影響其他內容。
                     </p>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', background: 'rgba(16, 185, 129, 0.15)', border: '1.5px solid rgba(16, 185, 129, 0.4)', padding: '0.75rem 1.4rem', borderRadius: 'var(--radius-full)', color: '#10b981', fontWeight: '800', fontSize: '0.92rem', boxShadow: '0 4px 20px rgba(16, 185, 129, 0.2)' }}>
-                    <Check size={20} /> Cloud Firestore 雲端即時局部連動中
+                    <Check size={20} /> 本地儲存即時連動中
                   </div>
                 </div>
 

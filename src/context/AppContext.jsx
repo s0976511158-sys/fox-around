@@ -1,8 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { initialData } from '../data/initialData';
 import { setDBItem, getDBItem, clearAllDB } from '../utils/dbStorage';
-import { mainDataDocRef, saveToFirestore, db } from '../config/firebase';
-import { onSnapshot, collection } from 'firebase/firestore';
+
 
 const AppContext = createContext();
 
@@ -312,106 +311,13 @@ export const AppProvider = ({ children }) => {
     syncFromDB();
   }, []);
 
-  // ✨ Google Firebase Cloud Firestore 實時分區全裝置連動監聽 (Real-time Cloud Sync across all devices)
-  useEffect(() => {
-    let unsubscribe = null;
-    try {
-      const siteDataCollectionRef = collection(db, 'siteData');
-      const setters = {
-        siteBranding: setSiteBranding,
-        heroConfig: setHeroConfig,
-        eventInfo: setEventInfo,
-        announcements: setAnnouncements,
-        categories: setCategories,
-        carouselItems: setCarouselItems,
-        showcaseItems: setShowcaseItems,
-        formQuestions: setFormQuestions,
-        formResponses: setFormResponses,
-        sponsors: setSponsors,
-        customPages: setCustomPages,
-        featureCards: setFeatureCards,
-        introCards: setIntroCards
-      };
-
-      unsubscribe = onSnapshot(siteDataCollectionRef, (querySnapshot) => {
-        const moduleDocsMap = {};
-
-        querySnapshot.forEach((docSnap) => {
-          if (!docSnap.exists()) return;
-          const data = docSnap.data();
-          if (!data) return;
-
-          const moduleKey = data.moduleKey || docSnap.id.split('_chunk_')[0];
-          const chunkIndex = typeof data.chunkIndex === 'number' ? data.chunkIndex : 0;
-          const part = data.dataJsonPart !== undefined ? data.dataJsonPart : (data.dataJson || '');
-
-          if (!moduleDocsMap[moduleKey]) {
-            moduleDocsMap[moduleKey] = [];
-          }
-          moduleDocsMap[moduleKey].push({
-            chunkIndex,
-            part
-          });
-        });
-
-        Object.keys(setters).forEach((key) => {
-          const docs = moduleDocsMap[key];
-          const setter = setters[key];
-          if (!docs || docs.length === 0 || !setter) return;
-
-          docs.sort((a, b) => a.chunkIndex - b.chunkIndex);
-
-          try {
-            const fullJsonStr = docs.map(d => d.part).join('');
-            if (!fullJsonStr) return;
-
-            const parsed = JSON.parse(fullJsonStr);
-            setter(parsed);
-            saveState(key, parsed);
-          } catch (e) {
-            console.error(`Firestore JSON parse error on ${key}:`, e);
-          }
-        });
-
-        setIsDBSynced(true);
-      }, (err) => {
-        console.warn(`Firestore listener notice:`, err);
-      });
-    } catch (e) {
-      console.warn('Firestore setup error:', e);
-    }
-
-    return () => {
-      if (unsubscribe) unsubscribe();
-    };
-  }, []);
-
-  // ⚡ 增量寫入特定模組至 Google Cloud Firestore (極速，僅寫入修改的單一或多個模組)
+  // 本地/IndexedDB 增量寫入與全站同步 (離線獨立運作)
   const syncToCloud = async (modulePayload) => {
-    return await saveToFirestore(modulePayload);
+    return { success: true };
   };
 
-  // ⚡ 將全站或指定模組寫入 Google Cloud Firestore 雲端資料庫
   const syncAllToCloud = async (overrides = null) => {
-    if (overrides && typeof overrides === 'object' && Object.keys(overrides).length > 0) {
-      return await saveToFirestore(overrides);
-    }
-    const payload = {
-      siteBranding,
-      heroConfig,
-      eventInfo,
-      announcements,
-      categories,
-      carouselItems,
-      showcaseItems,
-      formQuestions,
-      formResponses,
-      sponsors,
-      customPages,
-      featureCards,
-      introCards
-    };
-    return await saveToFirestore(payload);
+    return { success: true };
   };
 
   // 全站 Theme Mode HTML Body attribute 同步

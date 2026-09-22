@@ -94,58 +94,7 @@ export default defineConfig({
           }
         });
 
-        server.middlewares.use('/__api/deploy-firebase', (req, res) => {
-          if (req.method === 'POST') {
-            let body = '';
-            req.on('data', chunk => {
-              body += chunk;
-            });
-            req.on('end', () => {
-              try {
-                const parsedData = JSON.parse(body);
-                const data = extractBase64ImagesToFiles(parsedData, 'cms');
-                const fullData = {
-                  deployTimestamp: Date.now(),
-                  isAdmin: false,
-                  heroConfig: data.heroConfig || {},
-                  sponsors: data.sponsors || [],
-                  eventInfo: data.eventInfo || {},
-                  announcements: data.announcements || [],
-                  categories: data.categories || [],
-                  carouselItems: data.carouselItems || [],
-                  showcaseItems: data.showcaseItems || [],
-                  formQuestions: data.formQuestions || [],
-                  formResponses: data.formResponses || [],
-                  customPages: data.customPages || [],
-                  siteBranding: data.siteBranding || {},
-                  featureCards: data.featureCards || [],
-                  introCards: data.introCards || []
-                };
-                const fileContent = `export const initialData = ${JSON.stringify(fullData, null, 2)};\n`;
-                const filePath = path.resolve(process.cwd(), 'src/data/initialData.js');
-                fs.writeFileSync(filePath, fileContent, 'utf-8');
 
-                console.log('Building dist bundle for Firebase with full images...');
-                execSync('npm run build', { cwd: process.cwd(), stdio: 'inherit' });
-
-                console.log('Deploying to Firebase project fox-around...');
-                execSync('npx -y firebase-tools deploy --project fox-around', { cwd: process.cwd(), stdio: 'inherit' });
-
-                res.statusCode = 200;
-                res.setHeader('Content-Type', 'application/json');
-                res.end(JSON.stringify({ success: true, url: 'https://fox-around.web.app' }));
-              } catch (e) {
-                console.error('Error deploying to Firebase:', e);
-                res.statusCode = 500;
-                res.setHeader('Content-Type', 'application/json');
-                res.end(JSON.stringify({ error: e.message }));
-              }
-            });
-          } else {
-            res.statusCode = 405;
-            res.end();
-          }
-        });
       }
     }
   ]
