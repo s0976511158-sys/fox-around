@@ -147,9 +147,11 @@ export const ResponsesPage = () => {
           <h3 style={{ fontSize: '1.25rem', color: 'var(--text-title)', marginBottom: '0.5rem' }}>
             {searchTerm ? '找不到符合關鍵字的回應內容' : '目前尚無表單回應紀錄'}
           </h3>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-            {searchTerm ? '請嘗試更換搜尋關鍵字。' : '訪客填寫表單送出後，資料將自動寫入本地庫並顯示於此。'}
-          </p>
+          {searchTerm && (
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+              請嘗試更換搜尋關鍵字。
+            </p>
+          )}
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>

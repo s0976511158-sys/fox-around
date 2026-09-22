@@ -66,12 +66,14 @@ export const FormPage = ({ embedded = false }) => {
           {isExpired ? <Lock size={12} /> : <FileText size={12} />} 
           {isExpired ? '🔒 活動與問卷已截止' : (heroConfig?.formPageBadge || '官方活動意見與問卷調查')}
         </div>
-        <h1 style={{ fontSize: '2.4rem', fontWeight: '800' }}>
+        <h1 style={{ fontSize: 'clamp(1.5rem, 5vw, 2.4rem)', fontWeight: '800' }}>
           {heroConfig?.formPageTitle || '參與線上問卷調查'}
         </h1>
-        <p style={{ color: 'var(--text-muted)', fontSize: '1rem', marginTop: '0.5rem' }}>
-          {heroConfig?.formPageSubtitle || '請參考上方活動目的說明並填寫以下問卷，您的建議將幫助我們持續優化體驗。'}
-        </p>
+        <div className="mobile-marquee-container" style={{ marginTop: '0.5rem' }}>
+          <p className="mobile-marquee-text" style={{ color: 'var(--text-muted)', fontSize: '0.98rem', margin: 0 }}>
+            {heroConfig?.formPageSubtitle || '請參考上方活動目的說明並填寫以下問卷，您的建議將幫助我們持續優化體驗。'}
+          </p>
+        </div>
       </div>
 
       {/* 活動簡介與填表目的說明卡片 (含時間實現限制說明) */}
