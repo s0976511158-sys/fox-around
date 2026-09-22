@@ -188,15 +188,22 @@ export const FormPage = ({ embedded = false }) => {
 
           {formQuestions.map((q, idx) => (
             <div key={q.id} id={`q-container-${q.id}`} className="form-group" style={{ transition: 'all 0.3s ease', padding: '0.5rem', borderRadius: 'var(--radius-md)' }}>
-              <label className="form-label marquee-wrapper">
-                <span className="marquee-content">
-                  <span style={{ color: 'var(--accent-primary)', fontWeight: '700', marginRight: '6px' }}>
-                    Q{idx + 1}.
-                  </span>
-                  {q.title}
-                  {q.required && <span style={{ color: 'var(--accent-pink)', marginLeft: '4px' }}>*</span>}
+              <label className="form-label">
+                <span style={{ color: 'var(--accent-primary)', fontWeight: '700', marginRight: '6px' }}>
+                  Q{idx + 1}.
                 </span>
+                {q.title}
+                {q.required && <span style={{ color: 'var(--accent-pink)', marginLeft: '4px' }}>*</span>}
               </label>
+
+              {/* 手機裝置端輸入提示字單向連續跑馬燈 (完整跑馬燈) */}
+              {(q.placeholder || q.type === 'text' || q.type === 'email' || q.type === 'textarea') && (
+                <div className="mobile-marquee-hint">
+                  <div className="marquee-track">
+                    <span>💡 提示：{q.placeholder || (q.type === 'textarea' ? '請輸入詳細建議...' : '請輸入內容...')} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 💡 提示：{q.placeholder || (q.type === 'textarea' ? '請輸入詳細建議...' : '請輸入內容...')} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                  </div>
+                </div>
+              )}
 
               {/* 短單行文字 / Email */}
               {(q.type === 'text' || q.type === 'email') && (
@@ -224,7 +231,7 @@ export const FormPage = ({ embedded = false }) => {
               {q.type === 'radio' && q.options && (
                 <div className="radio-group">
                   {q.options.map((opt, oIdx) => (
-                    <label key={oIdx} className="option-label marquee-wrapper">
+                    <label key={oIdx} className="option-label">
                       <input
                         type="radio"
                         name={q.id}
@@ -233,7 +240,7 @@ export const FormPage = ({ embedded = false }) => {
                         onChange={() => handleInputChange(q.id, opt)}
                         style={{ accentColor: 'var(--accent-primary)', width: '18px', height: '18px', flexShrink: 0 }}
                       />
-                      <span className="marquee-content" style={{ fontSize: '0.95rem', color: 'var(--text-main)' }}>{opt}</span>
+                      <span style={{ fontSize: '0.95rem', color: 'var(--text-main)' }}>{opt}</span>
                     </label>
                   ))}
                 </div>
