@@ -233,7 +233,7 @@ export const ShowcaseSlider = () => {
                 <span className="badge badge-indigo">{currentItem.category || '精選主題'}</span>
               </div>
 
-              <h2 style={{ fontSize: '2rem', lineHeight: '1.2', marginBottom: '0.5rem', color: 'var(--text-title)' }}>
+              <h2 className="showcase-item-title">
                 {currentItem.title}
               </h2>
 

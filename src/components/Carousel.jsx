@@ -187,7 +187,7 @@ export const Carousel = () => {
               <span className="badge badge-indigo">{currentSlide.category}</span>
               {currentSlide.tag && <span className="badge badge-pink">{currentSlide.tag}</span>}
             </div>
-            <h3 style={{ fontSize: '1.4rem', color: '#fff', margin: 0, fontWeight: '800' }}>
+            <h3 className="carousel-card-title">
               {currentSlide.title}
             </h3>
           </div>

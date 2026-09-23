@@ -95,7 +95,7 @@ export const ImageModal = () => {
               ))}
             </div>
 
-            <h2 style={{ fontSize: '1.75rem', marginBottom: '1rem', color: 'var(--text-title)' }}>
+            <h2 className="modal-item-title">
               {selectedImageModal.title}
             </h2>
 
