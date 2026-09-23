@@ -2,16 +2,6 @@ import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { FileText, Sparkles, Send, CheckCircle2, Gift, Calendar, MapPin, ArrowRight, Clock, Lock } from 'lucide-react';
 
-const StaticPlaceholderOverlay = ({ text, style }) => {
-  return (
-    <div className="input-marquee-overlay" style={style}>
-      <div className="marquee-static-track">
-        <span>💡 {text}</span>
-      </div>
-    </div>
-  );
-};
-
 export const FormPage = ({ embedded = false }) => {
   const { eventInfo, formQuestions, addFormResponse, setActiveTab, heroConfig } = useApp();
   const [formData, setFormData] = useState({});
@@ -199,7 +189,7 @@ export const FormPage = ({ embedded = false }) => {
 
           {formQuestions.map((q, idx) => (
             <div key={q.id} id={`q-container-${q.id}`} className="form-group" style={{ transition: 'all 0.3s ease', padding: '0.5rem', borderRadius: 'var(--radius-md)' }}>
-              <label className="form-label">
+              <label className="form-label" style={{ marginBottom: q.placeholder ? '0.35rem' : '0.75rem' }}>
                 <span style={{ color: 'var(--accent-primary)', fontWeight: '700', marginRight: '6px' }}>
                   Q{idx + 1}.
                 </span>
@@ -207,7 +197,26 @@ export const FormPage = ({ embedded = false }) => {
                 {q.required && <span style={{ color: 'var(--accent-pink)', marginLeft: '4px' }}>*</span>}
               </label>
 
-
+              {/* 題目提示小標籤 (Hint Badge) */}
+              {q.placeholder && (
+                <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.65rem', display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+                  <span style={{ 
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.2rem',
+                    background: 'rgba(99, 102, 241, 0.12)', 
+                    color: 'var(--accent-primary)', 
+                    border: '1px solid rgba(99, 102, 241, 0.3)',
+                    padding: '0.15rem 0.55rem', 
+                    borderRadius: '20px', 
+                    fontSize: '0.78rem',
+                    fontWeight: '600'
+                  }}>
+                    💡 提示說明
+                  </span>
+                  <span>{q.placeholder}</span>
+                </div>
+              )}
 
               {/* 短單行文字 / Email */}
               {(q.type === 'text' || q.type === 'email') && (
@@ -215,17 +224,10 @@ export const FormPage = ({ embedded = false }) => {
                   <input
                     type={q.type}
                     className="form-control"
-                    placeholder=""
+                    placeholder={q.placeholder || '請輸入內容...'}
                     value={formData[q.id] || ''}
-                    onFocus={() => setFocusedQId(q.id)}
-                    onBlur={() => setFocusedQId(null)}
                     onChange={(e) => handleInputChange(q.id, e.target.value)}
-                    style={{ position: 'relative', zIndex: 2, background: (focusedQId === q.id || formData[q.id]) ? undefined : 'transparent' }}
                   />
-
-                  {(!formData[q.id] && focusedQId !== q.id) && (
-                    <StaticPlaceholderOverlay text={q.placeholder || '請輸入內容...'} />
-                  )}
                 </div>
               )}
 
@@ -235,20 +237,10 @@ export const FormPage = ({ embedded = false }) => {
                   <textarea
                     className="form-control"
                     rows={4}
-                    placeholder=""
+                    placeholder={q.placeholder || '請輸入詳細建議...'}
                     value={formData[q.id] || ''}
-                    onFocus={() => setFocusedQId(q.id)}
-                    onBlur={() => setFocusedQId(null)}
                     onChange={(e) => handleInputChange(q.id, e.target.value)}
-                    style={{ position: 'relative', zIndex: 2, background: (focusedQId === q.id || formData[q.id]) ? undefined : 'transparent' }}
                   />
-
-                  {(!formData[q.id] && focusedQId !== q.id) && (
-                    <StaticPlaceholderOverlay
-                      text={q.placeholder || '請輸入詳細建議...'}
-                      style={{ top: '1.1rem', transform: 'none' }}
-                    />
-                  )}
                 </div>
               )}
 
