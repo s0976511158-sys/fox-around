@@ -983,12 +983,7 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
 }
 
-/* 打字框/回答格內部無縫連續跑馬燈 (Marquee) 動效 */
-@keyframes marqueeLoopSeamless {
-  0% { transform: translateX(0%); }
-  100% { transform: translateX(-50%); }
-}
-
+/* 打字框/回答格內部靜態提示字 (Focus時自動消失) */
 .input-marquee-overlay {
   position: absolute;
   left: 1.1rem;
@@ -1002,17 +997,15 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--text-muted);
   opacity: 0.75;
   font-size: 0.92rem;
-}
-
-.input-marquee-overlay .marquee-loop-track {
-  display: inline-block;
-  white-space: nowrap;
-  animation: marqueeLoopSeamless 12s linear infinite;
+  text-overflow: ellipsis;
 }
 
 .input-marquee-overlay .marquee-static-track {
   display: inline-block;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .radio-group, .checkbox-group {
