@@ -291,7 +291,7 @@ export const initialData = {
       "subtitle": "",
       "category": "我的英雄學院",
       "imageUrl": "./images/cms_showcaseItems_2_imageUrl_1790042147810_rbto1.png",
-      "gifUrl": "./轟.gif",
+      "gifUrl": "./images/cms_showcaseItems_2_gifUrl_1790042147813_sxa8s.gif",
       "description": "英雄名「焦凍」，有著右半邊是白色、左半邊為紅色的髮型的少年，左眼部份因為年幼時被母親用燒過的開水潑到而留下燙傷的疤痕。性格孤傲，好勝心強，但在強大的實力下仍能保持足夠的正義感，對於敵人不願趕盡殺絕，認為那樣做違背了英雄的理念。A班推薦入學者之一。在家裡排位第四。\n有著「半冷半燃」的強力個性，體力測試為第二的強者。人對人室內戰鬥訓練與障子一組對上尾白和葉隱，使用個性瞬間將整棟大樓凍結，攻擊沒有波及到同伴，也沒有傷害到核武器，還削弱了敵方戰力，實力非常強，被爆豪視為競爭對手之一。",
       "highlightsText": "",
       "showCtaBtn": false,
