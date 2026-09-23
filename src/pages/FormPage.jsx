@@ -2,20 +2,6 @@ import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { FileText, Sparkles, Send, CheckCircle2, Gift, Calendar, MapPin, ArrowRight, Clock, Lock } from 'lucide-react';
 
-const BelowInputMarqueeHint = ({ text }) => {
-  if (!text) return null;
-  return (
-    <div className="below-input-marquee-bar">
-      <span className="hint-badge-tag">💡 提示說明</span>
-      <div className="below-marquee-track-container">
-        <div className="marquee-loop-track">
-          <span>{text} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {text} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 export const FormPage = ({ embedded = false }) => {
   const { eventInfo, formQuestions, addFormResponse, setActiveTab, heroConfig } = useApp();
   const [formData, setFormData] = useState({});
@@ -213,32 +199,24 @@ export const FormPage = ({ embedded = false }) => {
 
               {/* 短單行文字 / Email */}
               {(q.type === 'text' || q.type === 'email') && (
-                <div style={{ position: 'relative', width: '100%' }}>
-                  <input
-                    type={q.type}
-                    className="form-control"
-                    placeholder="請點擊此處開始輸入..."
-                    value={formData[q.id] || ''}
-                    onChange={(e) => handleInputChange(q.id, e.target.value)}
-                  />
-                  {/* 回答格後方的提示標籤與跑馬燈列 */}
-                  <BelowInputMarqueeHint text={q.placeholder} />
-                </div>
+                <input
+                  type={q.type}
+                  className="form-control"
+                  placeholder={q.placeholder || '請輸入內容...'}
+                  value={formData[q.id] || ''}
+                  onChange={(e) => handleInputChange(q.id, e.target.value)}
+                />
               )}
 
               {/* 多行文字 */}
               {q.type === 'textarea' && (
-                <div style={{ position: 'relative', width: '100%' }}>
-                  <textarea
-                    className="form-control"
-                    rows={4}
-                    placeholder="請點擊此處開始輸入..."
-                    value={formData[q.id] || ''}
-                    onChange={(e) => handleInputChange(q.id, e.target.value)}
-                  />
-                  {/* 回答格後方的提示標籤與跑馬燈列 */}
-                  <BelowInputMarqueeHint text={q.placeholder} />
-                </div>
+                <textarea
+                  className="form-control"
+                  rows={4}
+                  placeholder={q.placeholder || '請輸入詳細內容...'}
+                  value={formData[q.id] || ''}
+                  onChange={(e) => handleInputChange(q.id, e.target.value)}
+                />
               )}
 
               {/* 單選題 Radio */}
