@@ -1,6 +1,64 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { FileText, Sparkles, Send, CheckCircle2, Gift, Calendar, MapPin, ArrowRight, Clock, Lock } from 'lucide-react';
+
+const SmartPlaceholderOverlay = ({ text, style }) => {
+  const containerRef = useRef(null);
+  const textRef = useRef(null);
+  const [shouldMarquee, setShouldMarquee] = useState(false);
+
+  useEffect(() => {
+    const checkOverflow = () => {
+      if (containerRef.current && textRef.current) {
+        // 當文字總寬度超過容器可用寬度時才開啟跑馬燈動效
+        const isOverflow = textRef.current.scrollWidth > containerRef.current.clientWidth;
+        setShouldMarquee(isOverflow);
+      }
+    };
+
+    checkOverflow();
+    let observer;
+    if (window.ResizeObserver && containerRef.current) {
+      observer = new ResizeObserver(checkOverflow);
+      observer.observe(containerRef.current);
+    } else {
+      window.addEventListener('resize', checkOverflow);
+    }
+
+    return () => {
+      if (observer) observer.disconnect();
+      window.removeEventListener('resize', checkOverflow);
+    };
+  }, [text]);
+
+  return (
+    <div ref={containerRef} className="input-marquee-overlay" style={style}>
+      <span
+        ref={textRef}
+        style={{
+          position: 'absolute',
+          visibility: 'hidden',
+          whiteSpace: 'nowrap',
+          pointerEvents: 'none',
+          fontSize: 'inherit',
+          fontFamily: 'inherit'
+        }}
+      >
+        💡 {text}
+      </span>
+
+      {shouldMarquee ? (
+        <div className="marquee-loop-track">
+          <span>💡 {text} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 💡 {text} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+        </div>
+      ) : (
+        <div className="marquee-static-track">
+          <span>💡 {text}</span>
+        </div>
+      )}
+    </div>
+  );
+};
 
 export const FormPage = ({ embedded = false }) => {
   const { eventInfo, formQuestions, addFormResponse, setActiveTab, heroConfig } = useApp();
@@ -214,11 +272,7 @@ export const FormPage = ({ embedded = false }) => {
                   />
 
                   {(!formData[q.id] && focusedQId !== q.id) && (
-                    <div className="input-marquee-overlay">
-                      <div className="marquee-loop-track">
-                        <span>💡 {q.placeholder || '請輸入內容...'} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 💡 {q.placeholder || '請輸入內容...'} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                      </div>
-                    </div>
+                    <SmartPlaceholderOverlay text={q.placeholder || '請輸入內容...'} />
                   )}
                 </div>
               )}
@@ -238,11 +292,10 @@ export const FormPage = ({ embedded = false }) => {
                   />
 
                   {(!formData[q.id] && focusedQId !== q.id) && (
-                    <div className="input-marquee-overlay" style={{ top: '1.1rem', transform: 'none' }}>
-                      <div className="marquee-loop-track">
-                        <span>💡 {q.placeholder || '請輸入詳細建議...'} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 💡 {q.placeholder || '請輸入詳細建議...'} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                      </div>
-                    </div>
+                    <SmartPlaceholderOverlay
+                      text={q.placeholder || '請輸入詳細建議...'}
+                      style={{ top: '1.1rem', transform: 'none' }}
+                    />
                   )}
                 </div>
               )}
