@@ -180,7 +180,7 @@ export const FormPage = ({ embedded = false }) => {
         </div>
       ) : (
         /* 問卷表單內容 */
-        <form onSubmit={handleSubmit} className="glass-panel" style={{ padding: '2.5rem' }}>
+        <form onSubmit={handleSubmit} className="glass-panel form-card-padding">
           {errorMsg && (
             <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.4)', color: '#fca5a5', padding: '0.85rem 1.25rem', borderRadius: 'var(--radius-md)', marginBottom: '1.75rem', fontSize: '0.92rem' }}>
               ⚠️ {errorMsg}

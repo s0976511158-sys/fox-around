@@ -939,12 +939,23 @@ h1, h2, h3, h4, h5, h6 {
   margin-bottom: 1.5rem;
 }
 
+.form-card-padding {
+  padding: 2.5rem;
+}
+
+@media (max-width: 640px) {
+  .form-card-padding {
+    padding: 1.25rem 1rem;
+  }
+}
+
 .form-label {
   display: block;
-  font-size: 0.95rem;
+  font-size: clamp(0.88rem, 2.8vw, 1.02rem);
   font-weight: 600;
   color: var(--text-title);
   margin-bottom: 0.5rem;
+  line-height: 1.45;
 }
 
 .form-control {
@@ -955,8 +966,35 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: var(--radius-md);
   color: var(--text-title);
   font-family: inherit;
-  font-size: 0.95rem;
+  font-size: clamp(0.82rem, 2.8vw, 0.95rem);
   transition: all 0.25s ease;
+}
+
+.form-control::placeholder {
+  color: var(--text-muted);
+  opacity: 0.75;
+  font-size: clamp(0.68rem, 2.6vw, 0.9rem);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 640px) {
+  .form-control {
+    padding: 0.75rem 0.85rem;
+  }
+  .form-control::placeholder {
+    font-size: clamp(0.62rem, 2.5vw, 0.8rem);
+  }
+}
+
+@media (max-width: 420px) {
+  .form-control {
+    padding: 0.6rem 0.75rem;
+  }
+  .form-control::placeholder {
+    font-size: clamp(0.56rem, 2.4vw, 0.72rem);
+  }
 }
 
 [data-theme="light"] .form-control {
