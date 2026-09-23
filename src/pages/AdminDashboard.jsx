@@ -867,14 +867,14 @@ export const AdminDashboard = () => {
   }
 
   return (
-    <div className="modal-backdrop" onClick={closeAdminDashboard} style={{ zIndex: 9999, overflowY: 'auto', padding: '1.5rem 0' }}>
+    <div className="modal-backdrop admin-backdrop" onClick={closeAdminDashboard} style={{ zIndex: 9999, overflowY: 'auto' }}>
       <div 
         className="glass-panel animate-fade-in" 
         onClick={(e) => e.stopPropagation()}
         style={{
           maxWidth: '1280px',
           width: '95%',
-          margin: '0 auto',
+          margin: '1.5rem auto',
           position: 'relative',
           padding: '2.5rem 2rem',
           background: 'rgba(11, 15, 25, 0.97)',

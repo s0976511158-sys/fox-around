@@ -1460,6 +1460,12 @@ h1, h2, h3, h4, h5, h6 {
   background: rgba(255, 255, 255, 0.58) !important;
 }
 
+/* 🔒 大型管理者控制台彈窗獨立定位 (頂部對齊，完整平滑捲動不裁切頁首) */
+.modal-backdrop.admin-backdrop {
+  align-items: flex-start !important;
+  padding: 2rem 1rem !important;
+}
+
 .modal-card {
   background: var(--bg-card) !important;
   backdrop-filter: blur(25px) !important;
